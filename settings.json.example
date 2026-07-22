@@ -44,6 +44,8 @@
             "filesFileName": "FILE_LIST.csv",
             "cloudworksFileName": "CLOUDWORKS_LIST.csv",
             "activityCodesFileName": "ACTIVITY_CODES.csv",
+            "uxAppListFileName": "UX_APP_LIST.csv",
+            "uxPageListFileName": "UX_PAGE_LIST.csv",
             "auditFileName": "",
             "auditImportName": "",
             "lastRunFileName": "",
