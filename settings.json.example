@@ -1,0 +1,93 @@
+{
+    "_comment": "Complete settings reference — copy to settings.json and fill in your values. Most keys have safe defaults; the URIs only need changing for non-US or single-tenant clouds. One settings file targets one Anaplan tenant. v4 uses DuckDB (was SQLite in v1-v3); the file formats are incompatible, so point `database` at a fresh file.",
+
+    "auditEnabled": true,
+    "authenticationMode": "OAuth",
+    "anaplanTenantName": "Your Tenant Name",
+    "database": "anaplan_audit.duckdb",
+    "lastRun": 0,
+    "auditBatchSize": 1000,
+    "auditRetentionYears": 0,
+    "workspaceModelFilterApproach": "select",
+    "workspaceModelCombos": [
+        {
+            "workspaceId": "8a8b8c8d8e8f",
+            "modelId": "AAAABBBBCCCCDDDD"
+        }
+    ],
+    "oauthClientId": "",
+    "rotatableToken": true,
+    "certPublicPath": "",
+    "certPrivatePath": "",
+    "certPassphrase": "",
+    "uris": {
+        "authServiceUri": "https://auth.anaplan.com/token/authenticate",
+        "authTokenVerify": "https://auth.anaplan.com/token/validate",
+        "oauthServiceUri": "https://us1a.app.anaplan.com/oauth",
+        "integrationUri": "https://api.anaplan.com/2/0",
+        "auditUri": "https://audit.anaplan.com/audit/api/1",
+        "scimUri": "https://api.anaplan.com/scim/1/0/v2",
+        "cloudWorksUri": "https://api.cloudworks.anaplan.com/2/0"
+    },
+    "_targetComment": "The AUDIT reporting model. Model history has its own separate target under `modelHistory.targetAnaplanModel` — the two are deliberately different models (a UX page can display both, and model history grows a model far faster than audit).",
+    "targetAnaplanModel": {
+        "workspaceId": "8a8b8c8d8e8f",
+        "modelId": "AAAABBBBCCCCDDDD",
+        "objects": {
+            "_comment": "Two upload modes. Multi-file + process (v1-compatible, used by the OEG Audit Reporting Model): set `processName` and the tool uploads 8 per-table CSVs then runs the process. Single-file: set `auditFileName` + `auditImportName` instead. Names are resolved to IDs at runtime so model rebuilds don't break the config. `*FileName` fields default to what v1 shipped — override only if your file sources have different names.",
+            "processName": "Update Anaplan Audit Environment",
+            "auditEventsFileName": "AUDIT_LOG.csv",
+            "usersFileName": "USER_LIST.csv",
+            "workspacesFileName": "WORKSPACE_LIST.csv",
+            "modelsFileName": "MODEL_LIST.csv",
+            "actionsFileName": "ACTION_LIST.csv",
+            "filesFileName": "FILE_LIST.csv",
+            "cloudworksFileName": "CLOUDWORKS_LIST.csv",
+            "activityCodesFileName": "ACTIVITY_CODES.csv",
+            "auditFileName": "",
+            "auditImportName": "",
+            "lastRunFileName": "",
+            "lastRunImportName": "",
+
+            "_refreshLogComment": "Transactional-API refresh log (v3.2.13). On every successful run the tool adds a new item to `batchIdListName` (code = epoch seconds) and writes two cells in `refreshLogModuleName`: the ISO 8601 UTC timestamp and the count of audit rows loaded. Opt-in: blank list or module name disables it entirely. Line-item names default to what the OEG reporting model uses.",
+            "batchIdListName": "BATCH_ID",
+            "refreshLogModuleName": "Refresh Log",
+            "refreshLogTimeStampLineItem": "Time Stamp",
+            "refreshLogRecordsLoadedLineItem": "Audit Records Loaded",
+
+            "_syncListsComment": "Transactional-API list sync (v3.2.14). Belt-and-suspenders for reporting models whose nested imports don't handle new codes cleanly. For each entry the tool diffs the distinct values of `codeColumn` in the transformed audit DataFrame against the list's existing codes and POSTs any net-new codes as list items. Common columns: EVENT_ID (event types) and AUDIT_ID (per-event unique IDs). Failures never crash the run.",
+            "syncLists": [
+                { "listName": "EVENT_ID", "codeColumn": "EVENT_ID" },
+                { "listName": "AUDIT_ID", "codeColumn": "AUDIT_ID" }
+            ]
+        }
+    },
+    "_modelHistoryComment": "Model History uploads to its OWN Anaplan model (`targetAnaplanModel` below), separate from the audit reporting model above. When `enabled` is true, both workspaceId and modelId are REQUIRED — there is no fallback to the audit model, so the separation is always explicit. The target model must contain three data sources named MODEL_REGISTRY.csv, MODEL_HISTORY_LIST.csv, MODEL_HISTORY_NORMALIZED.csv and a process named by `anaplanProcess`.",
+    "modelHistory": {
+        "enabled": false,
+        "targetAnaplanModel": {
+            "workspaceId": "8a8b8c8d8e8f",
+            "modelId": "EEEEFFFFGGGGHHHH"
+        },
+        "exportActionName": "MODEL_HISTORY_EXPORT",
+        "exportTimeoutSeconds": 600,
+        "retentionYears": 2,
+        "anaplanProcess": "Load Model History",
+        "maxConcurrentExports": 5,
+        "backupBeforePurge": true,
+        "maxBackupsToKeep": 7
+    },
+    "_additionalAttributesComment": "v3.3.0 — extract UX / integration / action / process / role / target-user fields from each audit event's additionalAttributes payload into named columns, plus a full-fidelity JSON archive column. Feeds the v_ux_app / v_ux_page / v_cw_integration / v_action / v_process / v_role / v_target_user staging views (spec Section 6.3). Toggle a whole category off to leave its columns null; toggle emitLists off to keep the columns populated but drop the staging view (view is only useful when the reporting model has a matching list import wired). retainRawJson keeps the raw archive column; disable only if disk pressure justifies losing forward compatibility.",
+    "additionalAttributes": {
+        "enabled": true,
+        "retainRawJson": true,
+        "categories": {
+            "uxAppPage":     { "enabled": true,  "emitLists": true  },
+            "cwIntegration": { "enabled": true,  "emitLists": false },
+            "action":        { "enabled": true,  "emitLists": false },
+            "process":       { "enabled": true,  "emitLists": false },
+            "role":          { "enabled": false, "emitLists": false },
+            "targetUser":    { "enabled": false, "emitLists": false }
+        }
+    }
+}

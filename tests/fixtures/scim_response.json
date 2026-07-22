@@ -1,0 +1,17 @@
+{
+    "totalResults": 2,
+    "Resources": [
+        {
+            "id": "user-001",
+            "userName": "john.doe@example.com",
+            "displayName": "John Doe",
+            "active": true
+        },
+        {
+            "id": "user-002",
+            "userName": "jane.smith@example.com",
+            "displayName": "Jane Smith",
+            "active": true
+        }
+    ]
+}

@@ -1,0 +1,66 @@
+{
+    "meta": {
+        "schema": "https://audit.anaplan.com/audit/api/1/events",
+        "paging": {
+            "totalSize": 2
+        }
+    },
+    "status": {
+        "code": 200,
+        "message": "Success"
+    },
+    "response": [
+        {
+            "id": "audit-001",
+            "eventTypeId": "USR-13",
+            "userId": "user-001",
+            "tenantId": "tenant-001",
+            "objectId": "model-001",
+            "message": "User access to model, success",
+            "success": true,
+            "ipAddress": "192.168.1.100",
+            "userAgent": "Mozilla/5.0",
+            "sessionId": "sess-001",
+            "hostName": "us1a.app.anaplan.com",
+            "serviceVersion": "1.0",
+            "eventDate": 1705312200000,
+            "eventTimeZone": "UTC",
+            "createdDate": 1705312200000,
+            "createdTimeZone": "UTC",
+            "checksum": "abc123",
+            "objectTypeId": "1",
+            "objectTenantId": "tenant-001",
+            "additionalAttributes": {
+                "workspaceId": "ws-001",
+                "modelId": "model-001",
+                "name": "Revenue Model"
+            }
+        },
+        {
+            "id": "audit-002",
+            "eventTypeId": "USR-20",
+            "userId": "user-002",
+            "tenantId": "tenant-001",
+            "objectId": "model-001",
+            "message": "User executed action",
+            "success": true,
+            "ipAddress": "192.168.1.101",
+            "userAgent": "Mozilla/5.0",
+            "sessionId": "sess-002",
+            "hostName": "us1a.app.anaplan.com",
+            "serviceVersion": "1.0",
+            "eventDate": 1705315800000,
+            "eventTimeZone": "UTC",
+            "createdDate": 1705315800000,
+            "createdTimeZone": "UTC",
+            "checksum": "def456",
+            "objectTypeId": "1",
+            "objectTenantId": "tenant-001",
+            "additionalAttributes": {
+                "workspaceId": "ws-001",
+                "modelId": "model-001",
+                "actionId": "act-001"
+            }
+        }
+    ]
+}

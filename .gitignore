@@ -1,0 +1,75 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# uv
+uv.lock
+
+# Runtime data — never commit real credentials or databases
+settings.json
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.duckdb.wal
+*.wal
+.env
+.anaplan_audit/
+
+# Parity-test scratch data (real tenant backups copied in for Phase 4 validation)
+scratch/
+
+# Test / coverage artefacts
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+
+# macOS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Claude Code session metadata
+.claude/
+
+# Runtime logs and run-lock
+logs/
+*.lock
+
+# Internal session notes (not for public repo)
+session-notes.md
+doc-updates.md
+doc-updates-v3.md
+
+# Local run outputs — contain REAL tenant data (user emails, workspace/model
+# IDs, audit events). NEVER publish, especially to a public repo.
+samples/
+latest-run-log.txt
+*_backup_*.db
+
+# Markdown is local build context for Claude Code, not shipped to customers.
+# Only the root README.md is published. (Excludes CLAUDE.md, the spec/handoff
+# docs, docs/*.md, CONTRIBUTING.md, SECURITY.md, scratch findings, etc.)
+*.md
+!README.md
+
+# Stale v3 documentation set — pending a dedicated v4 rewrite. The README is
+# the single source of truth for v4 until these are refreshed.
+docs/

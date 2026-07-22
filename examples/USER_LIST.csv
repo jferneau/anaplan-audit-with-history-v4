@@ -1,0 +1,4 @@
+USR_CT,id,userName,displayName,firstName,lastName
+1,user-0001,alice.reed@example.com,Alice Reed,Alice,Reed
+2,user-0002,ben.cole@example.com,Ben Cole,Ben,Cole
+3,svc.integration@example.com,svc.integration@example.com,,,

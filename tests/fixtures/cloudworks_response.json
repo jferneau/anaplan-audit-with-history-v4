@@ -1,0 +1,11 @@
+{
+    "integrations": [
+        {
+            "integrationId": "cw-001",
+            "name": "Daily Revenue Sync",
+            "type": "S3",
+            "workspaceId": "ws-001",
+            "modelId": "model-001"
+        }
+    ]
+}

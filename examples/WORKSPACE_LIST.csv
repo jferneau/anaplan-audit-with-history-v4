@@ -1,0 +1,3 @@
+WS_CT,id,name,active,sizeAllowance,currentSize
+1,workspace-0001,Finance Workspace,1,68719476736,12884901888
+2,workspace-0002,Sales Workspace,1,34359738368,4294967296

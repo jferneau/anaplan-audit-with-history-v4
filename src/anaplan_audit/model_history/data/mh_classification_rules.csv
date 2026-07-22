@@ -1,0 +1,77 @@
+priority,pattern,object_type,change_type
+50,^<model successfully restored>$,Other,<model successfully restored>
+50,^Add Dashboard$,Dashboard,Add Dashboard
+50,^Add Export$,Export,Add Export
+50,^Add Functional Area$,Other,Add Functional Area
+50,^Add Import$,Other,Add Import
+50,^Add Import Data Source$,Other,Add Import Data Source
+50,^Add Item$,Module/List,Add Item
+50,^Add Line Item$,Line Item/Property,Add Line Item
+50,^Add Line Item Read Access Driver Write Access Driver$,Line Item/Property,Add Line Item Read Access Driver Write Access Driver
+50,^Add List$,Module/List,Add List
+50,^Add List Item$,Module/List,Add List Item
+50,^Add Module$,Module/List,Add Module
+50,^Add Module Read Access Driver Write Access Driver$,Module/List,Add Module Read Access Driver Write Access Driver
+50,^Add Process$,Process,Add Process
+50,^Add Property$,Line Item/Property,Add Property
+50,^Add Role$,Role,Add Role
+50,^Add Saved View$,Other,Add Saved View
+50,^Add Tag$,Other,Add Tag
+50,^Add User$,User,Add User
+50,^Add Version$,Version,Add Version
+50,^Begin sync revision$,Other,Begin sync revision
+50,^Blank Model Change$,Other,Blank Model Change
+50,^Break-back data change$,Line Item/Property,Break-back data change
+90,^Breakback data change affecting \d+ cells$,Line Item/Property,Breakback data change affecting [x] cells
+50,^Bulk data change$,Line Item/Property,Bulk data change
+50,^Bulk data change \(add-in\)$,Line Item/Property,Bulk data change (add-in)
+50,^Bulk Model Change$,Other,Bulk Model Change
+50,^Change Dashboard$,Dashboard,Change Dashboard
+50,^Change Export$,Export,Change Export
+50,^Change Import$,Other,Change Import
+50,^Change Import Data Source$,Other,Change Import Data Source
+50,^Change Line Item$,Line Item/Property,Change Line Item
+50,^Change List$,Module/List,Change List
+50,^Change Module$,Module/List,Change Module
+50,^Change Process$,Process,Change Process
+50,^Change Property$,Line Item/Property,Change Property
+50,^Change Saved View$,Other,Change Saved View
+50,^Change Time Scale$,Time Settings,Change Time Scale
+50,^Change Version$,Version,Change Version
+50,^Code Changed$,Line Item/Property,Code Changed
+50,^Create Dashboard$,Dashboard,Create Dashboard
+50,^Data Change$,Line Item/Property,Data Change
+50,^Delete Import$,Other,Delete Import
+50,^Delete Import Data Source$,Other,Delete Import Data Source
+50,^Delete Item$,Module/List,Delete Item
+50,^Delete Line Item$,Line Item/Property,Delete Line Item
+50,^Delete List$,Module/List,Delete List
+50,^Delete Module$,Module/List,Delete Module
+50,^Delete Property$,Line Item/Property,Delete Property
+50,^Delete Saved View$,Other,Delete Saved View
+50,^Delete User$,User,Delete User
+50,^Edit Line Item$,Line Item/Property,Edit Line Item
+50,^Import$,Other,Import
+50,^Move Item$,Module/List,Move Item
+50,^Move Line Item$,Line Item/Property,Move Line Item
+50,^Move Module$,Module/List,Move Module
+50,^Move Version$,Version,Move Version
+50,^Name Changed$,Other,Name Changed
+50,^Other Change$,Other,Other Change
+50,^Parent Changed$,Other,Parent Changed
+50,^Rename Action$,Action,Rename Action
+50,^Revision Added Automatically$,Other,Revision Added Automatically
+50,^Revision Added Manually by User$,Other,Revision Added Manually by User
+50,^Revision Synced$,Other,Revision Synced
+50,^Set Action Access$,Action,Set Action Access
+50,^Set List Access$,Module/List,Set List Access
+50,^Set Module Access$,Module/List,Set Module Access
+50,^Set Selective Access$,Role,Set Selective Access
+50,^Sync revision completed$,Other,Sync revision completed
+50,^Sync revision unsuccessful$,Other,Sync revision unsuccessful
+50,^Undo$,Other,Undo
+50,^User Role Changed$,Role,User Role Changed
+90,^\d+ Item\(s\) Added$,Module/List,x Item(s) Added
+90,^\d+ Item\(s\) Deleted$,Module/List,x Item(s) Deleted
+90,^\d+ User\(s\) Deleted$,User,x User(s) Deleted
+999,.*,Other,Model change (no details available)
