@@ -168,3 +168,42 @@ class TestSelectScopesActions:
         # Whole workspace skipped, run continues with empty model metadata.
         assert len(datasets["models"]) == 0
         assert len(datasets["actions"]) == 0
+
+
+class TestCloudworksDeadColumns:
+    def test_dead_columns_dropped_flattened_kept(self) -> None:
+        """CLOUDWORKS_LIST carries no dead columns: `type`/`uxVisible` (the API
+        fills `integrationType`/`nuxVisible` instead) and the raw `latestRun`/
+        `schedule` dicts (json_normalize already flattened them) are dropped;
+        the flattened `latestRun.*`/`schedule.*` and the real fields stay."""
+        with respx.mock:
+            respx.get(f"{BASE}/workspaces").mock(
+                return_value=httpx.Response(200, json={"workspaces": []})
+            )
+            respx.get(f"{SCIM}/Users").mock(
+                return_value=httpx.Response(200, json={"Resources": [], "totalResults": 0})
+            )
+            respx.get(f"{CW}/integrations").mock(
+                return_value=httpx.Response(
+                    200,
+                    json={
+                        "integrations": [
+                            {
+                                "integrationId": "int-1",
+                                "name": "Nightly Sync",
+                                "integrationType": "ImportAndProcess",
+                                "nuxVisible": "true",
+                                "latestRun": {"triggeredBy": "user", "success": "true"},
+                                "schedule": {"name": "Nightly", "status": "enabled"},
+                            }
+                        ]
+                    },
+                )
+            )
+            with make_client() as client:
+                datasets, _ws, _mn = _fetch_metadata(client, _settings(), [])
+
+        cols = set(datasets["cloudworks"].columns)
+        assert cols.isdisjoint({"type", "uxVisible", "latestRun", "schedule"})
+        assert {"integrationType", "nuxVisible"} <= cols
+        assert {"latestRun.triggeredBy", "schedule.name"} <= cols

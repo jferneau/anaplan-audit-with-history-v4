@@ -624,6 +624,16 @@ def _fetch_metadata(
         ),
         "act_codes": activity_df,  # SQL: act_codes ac
     }
+
+    # Drop always-empty CloudWorks columns so CLOUDWORKS_LIST.csv carries no
+    # dead fields: `type`/`uxVisible` are erroneous model declarations the API
+    # never fills (it returns `integrationType`/`nuxVisible`, which are kept),
+    # and `latestRun`/`schedule` are the raw nested dicts that json_normalize
+    # already flattened into `latestRun.*`/`schedule.*` — the raw columns only
+    # get re-added (empty) by _metadata_frame's column guarantee.
+    datasets["cloudworks"] = datasets["cloudworks"].drop(
+        columns=["type", "uxVisible", "latestRun", "schedule"], errors="ignore"
+    )
     return datasets, ws_names, model_names
 
 
