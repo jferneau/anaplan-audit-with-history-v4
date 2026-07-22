@@ -1,0 +1,3 @@
+Event Code,Event Message,Associated Object ID,Notes
+CONN-1,Connection configuration created successfully,The affected connection ID.,--
+CONN-2,Connection configuration updated successfully,The affected connection ID.,--
