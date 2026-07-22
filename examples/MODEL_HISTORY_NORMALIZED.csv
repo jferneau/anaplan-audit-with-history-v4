@@ -1,3 +1,3 @@
 record_id,anaplan_record_id,model_id,date_time_utc,user,description,security_change,previous_value,new_value,module_list,line_item_property,customer,export,import_action,data_types,table_name,object,target_user,captured_at,change_type,object_type
-a1b2c3d4e5f60718,10001,model-0001,2025-01-15 14:22:31,alice.reed@example.com,Add Line Item,,,Revenue Growth %,REV01 Revenue,Revenue Growth %,,,,,,,,2025-01-15T14:30:00+00:00,Add Line Item,Line Item/Property
-b2c3d4e5f6071829,10002,model-0001,2025-01-15 14:20:10,ben.cole@example.com,Add User,,,,,,,,,,,,carla.diaz@example.com,2025-01-15T14:30:00+00:00,Add User,User
+a1b2c3d4e5f60718,10001,model-0001,2025-01-15 14:22:31,alice.reed@example.com,Add Line Item,,100,Revenue Growth %,REV01 Revenue,Revenue Growth %,Acme Corp,Forecast Export,Load Actuals,Number,REV01,Revenue Growth %,,2025-01-15T14:30:00+00:00,Add Line Item,Line Item/Property
+b2c3d4e5f6071829,10002,model-0001,2025-01-15 14:20:10,ben.cole@example.com,Add User,Yes,,,,,,,,,,,carla.diaz@example.com,2025-01-15T14:30:00+00:00,Add User,User
