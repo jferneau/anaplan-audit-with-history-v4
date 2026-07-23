@@ -29,7 +29,7 @@ class TestFilesDatasetWiring:
     def test_files_is_in_the_upload_loop(self) -> None:
         # The tuple ordering matches the reporting model's expected
         # process ordering: WS -> USR -> MOD -> ACT -> FILE -> CW ->
-        # act_codes.
+        # act_codes -> event_categories.
         table_names = [t for t, _ in _TABLE_TO_FILE_ATTR]
         assert table_names == [
             "workspaces",
@@ -39,6 +39,7 @@ class TestFilesDatasetWiring:
             "files",
             "cloudworks",
             "act_codes",
+            "event_categories",
         ]
 
     def test_files_gets_file_ct_counter_column(self) -> None:

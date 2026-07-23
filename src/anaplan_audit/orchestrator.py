@@ -56,6 +56,7 @@ from anaplan_audit.model_history import classification
 from anaplan_audit.model_history.history_service import fetch_model_history
 from anaplan_audit.model_history.history_transform_service import normalize_model_history
 from anaplan_audit.model_history.upload import upload_model_history
+from anaplan_audit.taxonomy import CATEGORIES
 from anaplan_audit.transform.additional_attributes import enrich_event_dicts
 from anaplan_audit.transform.catalog import augment_activity_catalog
 from anaplan_audit.transform.loader import (
@@ -637,6 +638,11 @@ def _fetch_metadata(
             extra=["workspace_id", "model_id", "workspace_name", "model_name"],
         ),
         "act_codes": activity_df,  # SQL: act_codes ac
+        # EVENT_ID category seed (parents under All Events). Uploaded only when
+        # eventCategoriesFileName is set; content is fixed by the taxonomy.
+        "event_categories": pd.DataFrame(
+            [{"Code": code, "Name": name, "Parent": "All Events"} for code, name in CATEGORIES]
+        ),
     }
 
     # Drop always-empty CloudWorks columns so CLOUDWORKS_LIST.csv carries no

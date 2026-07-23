@@ -135,6 +135,13 @@ class TargetModelObjects(BaseModel):
     filesFileName: str = "FILE_LIST.csv"
     cloudworksFileName: str = "CLOUDWORKS_LIST.csv"
     activityCodesFileName: str = "ACTIVITY_CODES.csv"
+    eventCategoriesFileName: str = ""
+    """File source for the EVENT_ID category seed (``EVENT_CATEGORIES.csv``).
+
+    Blank (the default) skips the upload — set it to the file-source name in
+    your model to have the ~11 parent categories re-seeded on every run, so the
+    ACTIVITY_CODES import always has parents to map codes under. The content is
+    derived from :mod:`anaplan_audit.taxonomy` and never changes run to run."""
 
     # --- Single-file mode (v3 default) ----------------------------------
     # Blended CSV produced by audit_query.sql -> one file, one import.

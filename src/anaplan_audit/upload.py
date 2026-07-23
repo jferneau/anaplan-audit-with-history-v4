@@ -92,6 +92,7 @@ _TABLE_TO_FILE_ATTR: list[tuple[str, str]] = [
     ("files", "filesFileName"),
     ("cloudworks", "cloudworksFileName"),
     ("act_codes", "activityCodesFileName"),
+    ("event_categories", "eventCategoriesFileName"),
 ]
 
 # 1-based row counter prepended to each metadata CSV; the reporting
@@ -439,6 +440,12 @@ def _upload_via_process(
     with closing(_connect(db_path)) as conn:
         for table_name, file_attr in _TABLE_TO_FILE_ATTR:
             file_name = getattr(target.objects, file_attr)
+            # A blank file name opts this table out of the upload (e.g. the
+            # EVENT_CATEGORIES seed for models that don't import it) — skip
+            # rather than fail resolving a non-existent file source.
+            if not file_name:
+                log.debug("metadata_csv_skipped_no_file_name", table=table_name)
+                continue
             file_id = _resolve_object_id(
                 "file",
                 file_name,

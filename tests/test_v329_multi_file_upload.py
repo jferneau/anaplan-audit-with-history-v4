@@ -172,6 +172,91 @@ class TestMultiFileUpload:
             )
 
 
+class TestEventCategoriesSeed:
+    """The EVENT_ID category seed uploads only when its file name is set."""
+
+    def _run(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        *,
+        file_name: str,
+    ) -> list[str]:
+        from anaplan_audit import upload as upload_mod
+
+        db = tmp_path / "test.db"
+        _write_metadata_db(db)
+        seed_tables(
+            db,
+            {
+                "event_categories": pd.DataFrame(
+                    [{"Code": "USR", "Name": "USER ACTIVITY", "Parent": "All Events"}]
+                )
+            },
+        )
+        file_defs = [
+            ("AUDIT_LOG.csv", "F_AUDIT"),
+            ("USER_LIST.csv", "F_USERS"),
+            ("WORKSPACE_LIST.csv", "F_WS"),
+            ("MODEL_LIST.csv", "F_MODELS"),
+            ("ACTION_LIST.csv", "F_ACTIONS"),
+            ("FILE_LIST.csv", "F_FILES"),
+            ("CLOUDWORKS_LIST.csv", "F_CW"),
+            ("ACTIVITY_CODES.csv", "F_AC"),
+            ("EVENT_CATEGORIES.csv", "F_EVCAT"),
+        ]
+        monkeypatch.setattr(
+            upload_mod,
+            "list_files",
+            lambda *a, **k: [ImportDataSource(id=fid, name=fname) for fname, fid in file_defs],
+        )
+        monkeypatch.setattr(upload_mod, "list_imports", lambda *a, **k: [])
+        monkeypatch.setattr(
+            upload_mod,
+            "list_processes",
+            lambda *a, **k: [Process(id="P1", name="Update Anaplan Audit Environment")],
+        )
+        uploads: list[str] = []
+        monkeypatch.setattr(
+            upload_mod,
+            "upload_file_chunks",
+            lambda client, uri, ws, model, file_id, data: uploads.append(file_id),
+        )
+        monkeypatch.setattr(upload_mod, "run_process", lambda *a, **k: None)
+        monkeypatch.setattr(upload_mod, "_update_last_run", lambda *a, **k: None)
+        monkeypatch.setattr(upload_mod, "_upload_last_run_to_anaplan", lambda *a, **k: None)
+
+        settings = Settings(
+            targetAnaplanModel={  # type: ignore[arg-type]
+                "workspaceId": "w1",
+                "modelId": "m1",
+                "objects": {
+                    "processName": "Update Anaplan Audit Environment",
+                    "eventCategoriesFileName": file_name,
+                },
+            }
+        )
+        with make_client() as client:
+            upload_mod.upload_audit_data(
+                client, pd.DataFrame([{"AUDIT_ID": "1"}]), settings, db_path=db
+            )
+        return uploads
+
+    def test_uploaded_when_file_name_set(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        uploads = self._run(tmp_path, monkeypatch, file_name="EVENT_CATEGORIES.csv")
+        assert "F_EVCAT" in uploads
+
+    def test_skipped_when_file_name_blank(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Blank (the default) opts out cleanly — no upload, no ConfigError even
+        # though a model may not have the file source at all.
+        uploads = self._run(tmp_path, monkeypatch, file_name="")
+        assert "F_EVCAT" not in uploads
+
+
 class TestBackwardCompat:
     def test_single_file_mode_still_works(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """No processName -> falls through to the original single-file path."""

@@ -140,6 +140,7 @@ target model(s). Here's what each setting does and when to change it.
 |---|---|
 | `processName` | The Anaplan process that imports the uploaded CSVs. Set this for the standard (multi-file) setup. |
 | `...FileName` (e.g. `usersFileName`, `auditEventsFileName`) | The **exact names** of the file sources in your model. Defaults match the standard reporting model — override only if yours differ. |
+| `eventCategoriesFileName` | File source for the EVENT_ID category seed (`EVENT_CATEGORIES.csv`). Blank by default = not uploaded; set it to re-seed the ~11 parent categories on **every run**, so the ACTIVITY_CODES import always has parents to map codes under. |
 
 <details>
 <summary><b>Optional: single-file mode, refresh log, list sync</b></summary>
@@ -232,7 +233,7 @@ A few things that make the imports smooth:
 | `filesFileName` → `FILE_LIST.csv` | file metadata + `workspace_id, model_id, workspace_name, model_name` |
 | `cloudworksFileName` → `CLOUDWORKS_LIST.csv` | CloudWorks integration metadata |
 | `activityCodesFileName` → `ACTIVITY_CODES.csv` | the EVENT_ID list source — `Event Code, Event Message, Associated Object ID, Notes, Parent Code, Parent` |
-| *(one-time)* `EVENT_CATEGORIES.csv` | the EVENT_ID category tier — `Code, Name, Parent`. Imported once to seed the parents |
+| `eventCategoriesFileName` → `EVENT_CATEGORIES.csv` | the EVENT_ID category tier — `Code, Name, Parent`. Re-seeds the parents each run when configured |
 
 Optional UX/attribution lists (uploaded when their file-name key is set):
 `uxAppListFileName`, `uxPageListFileName`, and CloudWorks / Action / Process
@@ -437,12 +438,14 @@ The tool guarantees every code is parented, by two design choices:
    orphaned. The audit fact import only *references* `EVENT_ID` — it never
    creates members.
 
-To set it up: import `EVENT_CATEGORIES.csv` once (creates the ~11 categories
-under `All Events`), then point the `ACTIVITY_CODES` import at `EVENT_ID` with
-**Parent ← `Parent Code`, matched on code**. On the next run this also
-re-parents any codes that were previously orphaned. The category shows up on
-each event row too, as `EVENT_CATEGORY`, so the Audit module can filter by it
-directly.
+To set it up: create an `EVENT_CATEGORIES.csv` file source and set
+`eventCategoriesFileName` so the tool re-seeds the ~11 categories under
+`All Events` on **every run** (belt-and-suspenders — the category tier can
+never go missing). Then point the `ACTIVITY_CODES` import at `EVENT_ID` with
+**Parent ← `Parent Code`, matched on code**, and add both imports to your
+process. On the next run this also re-parents any codes that were previously
+orphaned. The category shows up on each event row too, as `EVENT_CATEGORY`, so
+the Audit module can filter by it directly.
 
 > **On the webinar:** *"Anaplan keeps inventing new event codes. Instead of
 > chasing a master list, the tool reads the code's prefix and files it under
