@@ -170,6 +170,58 @@ class TestSelectScopesActions:
         assert len(datasets["actions"]) == 0
 
 
+class TestAllWorkspaceModelsListed:
+    def test_models_listed_for_all_workspaces_not_just_selected(self) -> None:
+        """Models are listed across EVERY tenant workspace (so any event can
+        resolve its model), while per-model actions/processes/files stay scoped
+        to the selected model."""
+        ws2, m2 = "W2", "M-IN-WS2"
+        with respx.mock:
+            respx.get(f"{BASE}/workspaces").mock(
+                return_value=httpx.Response(
+                    200,
+                    json={
+                        "workspaces": [
+                            {"id": WS, "name": "WS One"},
+                            {"id": ws2, "name": "WS Two"},
+                        ]
+                    },
+                )
+            )
+            respx.get(f"{SCIM}/Users").mock(
+                return_value=httpx.Response(200, json={"Resources": [], "totalResults": 0})
+            )
+            respx.get(f"{CW}/integrations").mock(
+                return_value=httpx.Response(200, json={"integrations": []})
+            )
+            respx.get(f"{BASE}/workspaces/{WS}/models").mock(
+                return_value=httpx.Response(
+                    200, json={"models": [{"id": SELECTED, "name": "Selected"}]}
+                )
+            )
+            respx.get(f"{BASE}/workspaces/{ws2}/models").mock(
+                return_value=httpx.Response(
+                    200, json={"models": [{"id": m2, "name": "Model In WS2"}]}
+                )
+            )
+            for kind in ("actions", "processes", "files"):
+                respx.get(f"{BASE}/workspaces/{WS}/models/{SELECTED}/{kind}").mock(
+                    return_value=httpx.Response(200, json={kind: []})
+                )
+            # WS2's (non-selected) model detail must never be fetched.
+            ws2_actions = respx.get(f"{BASE}/workspaces/{ws2}/models/{m2}/actions").mock(
+                return_value=httpx.Response(404, json={"status": {"code": 404}})
+            )
+            combos = [WorkspaceModelCombo(workspaceId=WS, modelId=SELECTED)]
+            with make_client() as client:
+                datasets, _ws, model_names = _fetch_metadata(client, _settings(), combos)
+
+        model_ids = set(datasets["models"]["id"])
+        assert {SELECTED, m2} <= model_ids  # models from BOTH workspaces present
+        assert m2 in model_names
+        assert not ws2_actions.called  # non-selected model's detail never touched
+
+
 class TestCloudworksDeadColumns:
     def test_dead_columns_dropped_flattened_kept(self) -> None:
         """CLOUDWORKS_LIST carries no dead columns: `type`/`uxVisible` (the API

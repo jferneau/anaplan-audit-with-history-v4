@@ -124,6 +124,31 @@ def _seed_full_schema(db_path: Path) -> None:
     )
 
 
+_AA_KEYS = (
+    "workspaceId", "modelId", "actionId", "name", "type", "auth_id", "modelRoleName",
+    "modelRoleId", "objectTypeId", "roleId", "roleName", "objectTenantId", "objectId",
+    "active", "appId", "appName", "pageId", "pageName", "pipelineId", "dataspaceId",
+    "scheduleId", "connectionId", "taskId", "workflowTemplateId", "commentId",
+)
+
+
+def _event(**over: object) -> dict[str, object]:
+    """A complete events-table row (every column audit_query.sql references),
+    with sensible defaults; pass overrides for the fields under test."""
+    base: dict[str, object] = {
+        "id": "e1", "eventDate": 1705312200000, "index": 0, "eventTimeZone": "UTC",
+        "createdDate": 1705312200000, "createdTimeZone": "UTC", "eventTypeId": "USR-41",
+        "userId": "user-001", "tenantId": "tenant-001", "objectId": "", "message": "",
+        "success": True, "errorNumber": None, "ipAddress": "", "userAgent": "",
+        "sessionId": "", "hostName": "", "serviceVersion": "", "objectTypeId": "",
+        "objectTenantId": "", "checksum": "c1",
+    }
+    for k in _AA_KEYS:
+        base[f"additionalAttributes.{k}"] = None
+    base.update(over)
+    return base
+
+
 class TestDuckDBLoader:
     """Test loading data into DuckDB."""
 
@@ -370,6 +395,46 @@ class TestAuditQueryRunner:
             "IP_ADDRESS",
         }
         assert expected_cols.issubset(set(df.columns))
+
+    def test_model_resolves_from_objectid_case_insensitively(self, tmp_path: Path) -> None:
+        """An action-execution event carries its model in objectId (lowercase),
+        while the models table id is UPPERCASE. MODEL_ID/MODEL_NAME/OBJECT must
+        still resolve — MODEL_ID as the canonical uppercase id."""
+        db_path = tmp_path / "test.db"
+        low = "e667a85d33c042cfaca069e69441c51f"
+        up = low.upper()
+        events_df = pd.DataFrame([_event(objectId=low, eventTypeId="USR-41")])  # no modelId
+        # Force additionalAttributes.* to VARCHAR — production's loader types
+        # every event column VARCHAR, but seed_tables would infer an all-null
+        # column as INTEGER, which the MODEL_ID CASE can't mix with the VARCHAR
+        # m2.id.
+        aa = [c for c in events_df.columns if c.startswith("additionalAttributes.")]
+        events_df[aa] = events_df[aa].astype("string")
+        seed_tables(
+            db_path,
+            {
+                "events": events_df,
+                "users": pd.DataFrame(
+                    [{"id": "user-001", "userName": "u@t.com", "displayName": "U"}]
+                ),
+                "workspaces": pd.DataFrame([{"id": "ws-001", "name": "WS"}]),
+                "models": pd.DataFrame([{"id": up, "name": "Prod Model"}]),
+                "cloudworks": pd.DataFrame(
+                    [{"integrationId": "cw-1", "name": "CW", "modelId": up}]
+                ),
+                "act_codes": pd.DataFrame(
+                    [{"Event Code": "USR-41", "Event Message": "Process executed",
+                      "Associated Object Id": "", "Notes": "--"}]
+                ),
+                "actions": pd.DataFrame([{"id": "a1", "name": "Proc", "model_id": up}]),
+            },
+        )
+        df = run_audit_query(db_path, tenant_name="T")
+        row = df.iloc[0]
+        assert row["MODEL_ID"] == up            # canonical uppercase, matches the MODEL list
+        assert row["MODEL_NAME"] == "Prod Model"
+        assert row["OBJECT_TYPE"] == "Model"
+        assert row["OBJECT_NAME"] == "Prod Model"
 
     def test_tenant_name_substituted(self, tmp_path: Path) -> None:
         """TENANT_NAME column contains the supplied tenant_name value."""

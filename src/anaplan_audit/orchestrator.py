@@ -513,10 +513,17 @@ def _fetch_metadata(
     # inaccessible, being copied) is never queried and can't 404 the run.
     selected_pairs = {(c.workspaceId, c.modelId) for c in combos}
 
-    # Combos can repeat a workspace; list each workspace's models only once.
-    unique_workspace_ids = list(dict.fromkeys(c.workspaceId for c in combos))
+    # List models across EVERY workspace in the tenant, not just the selected
+    # ones, so the MODEL / WORKSPACE lookup tables are complete. Audit events
+    # are tenant-wide and can reference a model in any workspace (directly via
+    # additionalAttributes.modelId, or via objectId for action-execution
+    # events), so a model list scoped to selected workspaces leaves those
+    # events unattributed. Listing models is one cheap, non-404-prone call per
+    # workspace; the expensive, per-model, 404-prone actions/processes/files
+    # calls stay gated on selected_pairs below. (Matches v1 behaviour.)
+    all_workspace_ids = list(dict.fromkeys(w.id for w in workspaces))
 
-    for ws_id in unique_workspace_ids:
+    for ws_id in all_workspace_ids:
         try:
             models = list_models(client, uri, ws_id)
         except Exception as exc:

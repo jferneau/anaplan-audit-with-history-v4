@@ -15,6 +15,20 @@
 --   * The MODEL_NAME CloudWorks arm's subquery is correlated to cw.modelId —
 --     in v3 it was uncorrelated and silently picked an arbitrary row when a
 --     tenant had more than one CloudWorks integration (latent bug).
+--   * objectId joins (m2/u2/cw and the action join) are CASE-INSENSITIVE
+--     (upper() both sides). The Audit API returns objectId in lowercase while
+--     the Integration API returns model ids in UPPERCASE, so a case-sensitive
+--     objectId = model.id comparison silently never matched — leaving
+--     MODEL/OBJECT/ACTION unresolved for every action-execution event. GUIDs
+--     are case-insensitive, so upper() both sides is always correct. (The
+--     userId/workspaceId/modelId joins are left as-is — their two sides come
+--     from APIs that already agree on case.)
+--   * MODEL_ID / MODEL_NAME also derive from objectId when the object IS a
+--     model (m2 join). Action-execution events (e.g. USR-41 "process
+--     executed") carry the model in objectId, not additionalAttributes.
+--     modelId — this attributes them to their model. MODEL_ID returns the
+--     canonical uppercase m2.id so it matches the reporting model's MODEL
+--     list.
 SELECT
 	CAST(e.eventDate // 1000 AS VARCHAR) || lpad(CAST(e."index" AS VARCHAR), 9, '0') as LOAD_ID ,
 	{{time_stamp}} as BATCH_ID ,
@@ -36,22 +50,24 @@ SELECT
 	w.name as WORKSPACE_NAME ,
 	CASE
 		WHEN e."additionalAttributes.modelId" IS NOT NULL THEN e."additionalAttributes.modelId"
-		WHEN e.objectId = cw.integrationId THEN cw.modelId
+		WHEN m2.id IS NOT NULL THEN m2.id
+		WHEN cw.integrationId IS NOT NULL THEN cw.modelId
 	END as MODEL_ID ,
 	CASE
 		WHEN e."additionalAttributes.modelId" IS NOT NULL THEN m.name
-		WHEN e.objectId = cw.integrationId THEN (SELECT m3.name FROM models m3 WHERE m3.id = cw.modelId)
+		WHEN m2.id IS NOT NULL THEN m2.name
+		WHEN cw.integrationId IS NOT NULL THEN (SELECT m3.name FROM models m3 WHERE m3.id = cw.modelId)
 	END as MODEL_NAME ,
 	e.objectId as OBJECT_ID ,
 	CASE
-		WHEN e.objectId = m2.id THEN 'Model'
-		WHEN e.objectId = cw.integrationId THEN 'CloudWorks Integration'
-		WHEN e.objectId = u2.id  THEN 'User'
+		WHEN m2.id IS NOT NULL THEN 'Model'
+		WHEN cw.integrationId IS NOT NULL THEN 'CloudWorks Integration'
+		WHEN u2.id IS NOT NULL THEN 'User'
 	END as OBJECT_TYPE ,
 	CASE
-		WHEN e.objectId = m2.id THEN m2.name
-		WHEN e.objectId = cw.integrationId THEN cw.name
-		WHEN e.objectId = u2.id  THEN u2.userName
+		WHEN m2.id IS NOT NULL THEN m2.name
+		WHEN cw.integrationId IS NOT NULL THEN cw.name
+		WHEN u2.id IS NOT NULL THEN u2.userName
 	END as OBJECT_NAME ,
 	e.message as MESSAGE ,
 	CAST(e.success AS INTEGER) as SUCCESS,
@@ -109,10 +125,10 @@ SELECT
 	e.checksum as CHECKSUM
 FROM events e
 LEFT JOIN users u ON e.userId = u.id
-LEFT JOIN users u2 ON e.objectId = u2.id
+LEFT JOIN users u2 ON upper(e.objectId) = upper(u2.id)
 LEFT JOIN workspaces w ON e."additionalAttributes.workspaceId" = w.id
 LEFT JOIN models m ON e."additionalAttributes.modelId" = m.id
-LEFT JOIN models m2 ON e.objectId = m2.id
-LEFT JOIN cloudworks cw on e.objectId = cw.integrationId
+LEFT JOIN models m2 ON upper(e.objectId) = upper(m2.id)
+LEFT JOIN cloudworks cw on upper(e.objectId) = upper(cw.integrationId)
 LEFT JOIN act_codes ac on e.eventTypeId = ac."Event Code"
-LEFT JOIN actions a on e."additionalAttributes.actionId" || e.objectId  = a.id || a.model_id
+LEFT JOIN actions a on upper(e."additionalAttributes.actionId" || e.objectId) = upper(a.id || a.model_id)
