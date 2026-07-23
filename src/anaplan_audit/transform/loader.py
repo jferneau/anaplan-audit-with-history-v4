@@ -196,9 +196,7 @@ def load_to_duckdb(db_path: Path, datasets: dict[str, pd.DataFrame]) -> None:
                     )
                     conn.register("_load_df", df)
                     conn.execute(f'CREATE OR REPLACE TABLE "{table_name}" ({col_defs})')
-                    conn.execute(
-                        f'INSERT INTO "{table_name}" SELECT * FROM _load_df'
-                    )
+                    conn.execute(f'INSERT INTO "{table_name}" SELECT * FROM _load_df')
                     conn.unregister("_load_df")
                 logger.info(
                     "table_loaded",

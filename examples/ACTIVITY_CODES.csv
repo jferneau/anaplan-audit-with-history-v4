@@ -13,6 +13,8 @@ AUTHZ-3,Role assigned,The user ID on which the role assignment was performed.,Ro
 AUTHZ-4,Role assignment denied,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-6,Role unassigned,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-7,Role unassignment denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-11,Access control event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
+AUTHZ-17,Access control event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
 USR-1,User created,The ID of the created user.,(In Anaplan),USR,USER ACTIVITY
 USR-2,User activated,The ID of the activated user.,(In Anaplan),USR,USER ACTIVITY
 USR-3,User enabled,The associated user ID.,(In the tenant),USR,USER ACTIVITY
@@ -78,6 +80,10 @@ USR-71,Successful import of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY
+USR-75,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-81,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-82,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-83,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
 COMMENT-01,Comment added,,Comment events have no associated object ID.,COMMENT,COMMENT
 COMMENT-02,Comment deleted,,Comment events have no associated object ID.,COMMENT,COMMENT
 COMMENT-03,Comments exported,,Comment events have no associated object ID.,COMMENT,COMMENT
@@ -206,11 +212,14 @@ WF-101,Task started,The event code.,Workflow task event.,WF,WORKFLOW
 WF-102,Task completed,The event code.,Workflow task event.,WF,WORKFLOW
 WF-103,Task opened,The event code.,Workflow task event.,WF,WORKFLOW
 WF-104,Task cancelled,The event code.,Workflow task event.,WF,WORKFLOW
+WF-105,Page task reassigned,The event code.,Workflow task event.,WF,WORKFLOW
 WF-106,Task updated,The event code.,Workflow task event.,WF,WORKFLOW
 WF-107,Task rejected,The event code.,"Workflow task event. Previously documented as ""Task reopened"" in earlier releases.",WF,WORKFLOW
 WF-108,Task sent back,The event code.,Workflow task event.,WF,WORKFLOW
 WF-109,Task transferred,The event code.,Workflow task event.,WF,WORKFLOW
 WF-110,Task sent reminder,The event code.,Workflow task event.,WF,WORKFLOW
+WF-111,Workflow task event (message pending Anaplan documentation),The event code.,Code present in API responses; message not yet published by Anaplan.,WF,WORKFLOW
+WF-112,Workflow task event (message pending Anaplan documentation),The event code.,Code present in API responses; message not yet published by Anaplan.,WF,WORKFLOW
 WF-1000,Workflow template created,The event code.,Workflow template event.,WF,WORKFLOW
 WF-1001,Workflow template published,The event code.,Workflow template event.,WF,WORKFLOW
 WF-1002,Draft version added to workflow template and published,The event code.,Workflow template event.,WF,WORKFLOW
