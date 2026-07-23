@@ -329,12 +329,6 @@ a *history* system rather than a 30-day window.
   warehouse before the cutoff passes. Raising `retentionYears` also works,
   at the cost of a larger local database and Anaplan model.
 
-> **On the webinar:** the one-liner is *"Anaplan gives you a short live
-> history window; this tool captures it on every run, accumulates it into a
-> permanent store you control, keeps a rolling set of backups, and prunes to
-> your retention policy — with a full backup taken before anything is ever
-> deleted."*
-
 ### What lands in Anaplan
 
 Three CSVs load into the Model History model via the `anaplanProcess`
@@ -412,12 +406,6 @@ fixed set of columns:
 - **`retainRawJson`** — keep (or drop) the full JSON archive column. Keeping
   it is the forward-compatibility hedge; dropping it trims width if you're
   certain you'll never need attributes beyond the named columns.
-
-> **On the webinar:** *"Anaplan tags each audit event with extra context —
-> the app, the integration, the action, the role, even the user an admin
-> action targeted. The tool pulls all of that into clean named columns you
-> can slice in the report, and keeps the raw payload as a safety net so
-> we're covered even when Anaplan adds something new."*
 
 ---
 
