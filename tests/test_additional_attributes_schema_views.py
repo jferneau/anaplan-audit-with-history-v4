@@ -102,8 +102,7 @@ class TestStagingViews:
             views = {
                 row[0]
                 for row in conn.execute(
-                    "SELECT table_name FROM information_schema.tables"
-                    " WHERE table_type='VIEW'"
+                    "SELECT table_name FROM information_schema.tables WHERE table_type='VIEW'"
                 ).fetchall()
             }
         expected = {
@@ -154,13 +153,28 @@ class TestStagingViews:
         db_path = tmp_path / "test.db"
         df = pd.DataFrame(
             [
-                {"id": "1", "app_id": "app-1", "app_name": "Sales App",
-                 "page_id": "pg-1", "page_name": "Overview"},
-                {"id": "2", "app_id": "app-1", "app_name": "Sales App",
-                 "page_id": "pg-2", "page_name": "Detail"},
+                {
+                    "id": "1",
+                    "app_id": "app-1",
+                    "app_name": "Sales App",
+                    "page_id": "pg-1",
+                    "page_name": "Overview",
+                },
+                {
+                    "id": "2",
+                    "app_id": "app-1",
+                    "app_name": "Sales App",
+                    "page_id": "pg-2",
+                    "page_name": "Detail",
+                },
                 # No parent app_id → must be dropped from the page view.
-                {"id": "3", "app_id": None, "app_name": None,
-                 "page_id": "pg-3", "page_name": "Orphan Page"},
+                {
+                    "id": "3",
+                    "app_id": None,
+                    "app_name": None,
+                    "page_id": "pg-3",
+                    "page_name": "Orphan Page",
+                },
             ]
         )
         load_to_duckdb(db_path, {"events": df})
@@ -199,8 +213,7 @@ class TestStagingViews:
             views = {
                 row[0]
                 for row in conn.execute(
-                    "SELECT table_name FROM information_schema.tables"
-                    " WHERE table_type='VIEW'"
+                    "SELECT table_name FROM information_schema.tables WHERE table_type='VIEW'"
                 ).fetchall()
             }
         # uxAppPage produces both v_ux_app and v_ux_page.
@@ -219,8 +232,7 @@ class TestStagingViews:
             views = {
                 row[0]
                 for row in conn.execute(
-                    "SELECT table_name FROM information_schema.tables"
-                    " WHERE table_type='VIEW'"
+                    "SELECT table_name FROM information_schema.tables WHERE table_type='VIEW'"
                 ).fetchall()
             }
         # ``v_models_export`` is created by ``load_to_duckdb`` — filter it

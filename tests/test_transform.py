@@ -125,10 +125,31 @@ def _seed_full_schema(db_path: Path) -> None:
 
 
 _AA_KEYS = (
-    "workspaceId", "modelId", "actionId", "name", "type", "auth_id", "modelRoleName",
-    "modelRoleId", "objectTypeId", "roleId", "roleName", "objectTenantId", "objectId",
-    "active", "appId", "appName", "pageId", "pageName", "pipelineId", "dataspaceId",
-    "scheduleId", "connectionId", "taskId", "workflowTemplateId", "commentId",
+    "workspaceId",
+    "modelId",
+    "actionId",
+    "name",
+    "type",
+    "auth_id",
+    "modelRoleName",
+    "modelRoleId",
+    "objectTypeId",
+    "roleId",
+    "roleName",
+    "objectTenantId",
+    "objectId",
+    "active",
+    "appId",
+    "appName",
+    "pageId",
+    "pageName",
+    "pipelineId",
+    "dataspaceId",
+    "scheduleId",
+    "connectionId",
+    "taskId",
+    "workflowTemplateId",
+    "commentId",
 )
 
 
@@ -136,12 +157,27 @@ def _event(**over: object) -> dict[str, object]:
     """A complete events-table row (every column audit_query.sql references),
     with sensible defaults; pass overrides for the fields under test."""
     base: dict[str, object] = {
-        "id": "e1", "eventDate": 1705312200000, "index": 0, "eventTimeZone": "UTC",
-        "createdDate": 1705312200000, "createdTimeZone": "UTC", "eventTypeId": "USR-41",
-        "userId": "user-001", "tenantId": "tenant-001", "objectId": "", "message": "",
-        "success": True, "errorNumber": None, "ipAddress": "", "userAgent": "",
-        "sessionId": "", "hostName": "", "serviceVersion": "", "objectTypeId": "",
-        "objectTenantId": "", "checksum": "c1",
+        "id": "e1",
+        "eventDate": 1705312200000,
+        "index": 0,
+        "eventTimeZone": "UTC",
+        "createdDate": 1705312200000,
+        "createdTimeZone": "UTC",
+        "eventTypeId": "USR-41",
+        "userId": "user-001",
+        "tenantId": "tenant-001",
+        "objectId": "",
+        "message": "",
+        "success": True,
+        "errorNumber": None,
+        "ipAddress": "",
+        "userAgent": "",
+        "sessionId": "",
+        "hostName": "",
+        "serviceVersion": "",
+        "objectTypeId": "",
+        "objectTenantId": "",
+        "checksum": "c1",
     }
     for k in _AA_KEYS:
         base[f"additionalAttributes.{k}"] = None
@@ -423,15 +459,21 @@ class TestAuditQueryRunner:
                     [{"integrationId": "cw-1", "name": "CW", "modelId": up}]
                 ),
                 "act_codes": pd.DataFrame(
-                    [{"Event Code": "USR-41", "Event Message": "Process executed",
-                      "Associated Object Id": "", "Notes": "--"}]
+                    [
+                        {
+                            "Event Code": "USR-41",
+                            "Event Message": "Process executed",
+                            "Associated Object Id": "",
+                            "Notes": "--",
+                        }
+                    ]
                 ),
                 "actions": pd.DataFrame([{"id": "a1", "name": "Proc", "model_id": up}]),
             },
         )
         df = run_audit_query(db_path, tenant_name="T")
         row = df.iloc[0]
-        assert row["MODEL_ID"] == up            # canonical uppercase, matches the MODEL list
+        assert row["MODEL_ID"] == up  # canonical uppercase, matches the MODEL list
         assert row["MODEL_NAME"] == "Prod Model"
         assert row["OBJECT_TYPE"] == "Model"
         assert row["OBJECT_NAME"] == "Prod Model"

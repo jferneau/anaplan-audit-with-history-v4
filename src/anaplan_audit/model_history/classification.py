@@ -104,9 +104,7 @@ def load_rules(
         change_types = _read_vocabulary("mh_change_types.csv")
     if rules_text is None:
         rules_text = (
-            importlib.resources.files(_DATA_PKG)
-            .joinpath("mh_classification_rules.csv")
-            .read_text()
+            importlib.resources.files(_DATA_PKG).joinpath("mh_classification_rules.csv").read_text()
         )
 
     rules: list[Rule] = []

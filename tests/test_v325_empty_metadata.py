@@ -78,8 +78,7 @@ class TestEmptyMetadataLoad:
             tables = {
                 r[0]
                 for r in conn.execute(
-                    "SELECT table_name FROM information_schema.tables"
-                    " WHERE table_type='BASE TABLE'"
+                    "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE'"
                 ).fetchall()
             }
         # workspaces loaded; cloudworks skipped rather than crashing.

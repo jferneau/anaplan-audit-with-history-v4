@@ -65,9 +65,7 @@ def test_every_bundled_rule_cites_known_vocabulary() -> None:
 
 def test_unknown_object_type_skipped_with_warning() -> None:
     text = (
-        "priority,pattern,object_type,change_type\n"
-        "10,^x$,Bogus Object,Other\n"
-        "999,.*,Other,Other\n"
+        "priority,pattern,object_type,change_type\n10,^x$,Bogus Object,Other\n999,.*,Other,Other\n"
     )
     rules = _rules(text)
     assert all(r.object_type != "Bogus Object" for r in rules)
@@ -76,27 +74,19 @@ def test_unknown_object_type_skipped_with_warning() -> None:
 
 def test_unknown_change_type_skipped() -> None:
     text = (
-        "priority,pattern,object_type,change_type\n"
-        "10,^x$,Other,Bogus Change\n"
-        "999,.*,Other,Other\n"
+        "priority,pattern,object_type,change_type\n10,^x$,Other,Bogus Change\n999,.*,Other,Other\n"
     )
     assert len(_rules(text)) == 1
 
 
 def test_invalid_regex_skipped() -> None:
-    text = (
-        "priority,pattern,object_type,change_type\n"
-        "10,^([,Other,Other\n"
-        "999,.*,Other,Other\n"
-    )
+    text = "priority,pattern,object_type,change_type\n10,^([,Other,Other\n999,.*,Other,Other\n"
     assert len(_rules(text)) == 1
 
 
 def test_bad_priority_skipped() -> None:
     text = (
-        "priority,pattern,object_type,change_type\n"
-        "notanint,^x$,Other,Other\n"
-        "999,.*,Other,Other\n"
+        "priority,pattern,object_type,change_type\nnotanint,^x$,Other,Other\n999,.*,Other,Other\n"
     )
     assert len(_rules(text)) == 1
 

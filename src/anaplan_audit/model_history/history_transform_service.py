@@ -373,7 +373,6 @@ def normalize_model_history(
         tmp_path = Path(tmp.name)
         tmp.write(csv_text)
     try:
-
         # Escape the (fully controlled) temp path for inlining — table
         # functions can't take bound parameters.
         path_literal = str(tmp_path).replace("'", "''")

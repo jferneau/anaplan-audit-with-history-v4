@@ -118,10 +118,24 @@ class TestV380ClassificationColumns:
         from anaplan_audit.model_history.history_transform_service import NORMALIZED_COLUMNS
 
         assert NORMALIZED_COLUMNS[:-2] == [
-            "record_id", "anaplan_record_id", "model_id", "date_time_utc", "user",
-            "description", "security_change", "previous_value", "new_value",
-            "module_list", "line_item_property", "customer", "export",
-            "import_action", "data_types", "table_name", "object", "target_user",
+            "record_id",
+            "anaplan_record_id",
+            "model_id",
+            "date_time_utc",
+            "user",
+            "description",
+            "security_change",
+            "previous_value",
+            "new_value",
+            "module_list",
+            "line_item_property",
+            "customer",
+            "export",
+            "import_action",
+            "data_types",
+            "table_name",
+            "object",
+            "target_user",
             "captured_at",
         ]
 
@@ -215,8 +229,7 @@ class TestModelHistorySQLite:
             tables = {
                 row[0]
                 for row in conn.execute(
-                    "SELECT table_name FROM information_schema.tables"
-                    " WHERE table_type='BASE TABLE'"
+                    "SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE'"
                 ).fetchall()
             }
         assert "model_registry" in tables
@@ -347,9 +360,7 @@ class TestModelHistorySQLite:
         with closing(duckdb.connect(str(db_path))) as conn:
             cols = {
                 row[1]
-                for row in conn.execute(
-                    "PRAGMA table_info(model_history_normalized)"
-                ).fetchall()
+                for row in conn.execute("PRAGMA table_info(model_history_normalized)").fetchall()
             }
 
         assert "import_action" in cols
