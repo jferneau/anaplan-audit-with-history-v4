@@ -262,8 +262,7 @@ item, a formula edit, a list member added, a role change. They answer
 different questions, and history grows a model **much** faster than audit
 events do, so it lives in its own Anaplan model. That keeps the audit model
 lean and lets you size, refresh, and iterate on each independently. This is
-why `modelHistory.targetAnaplanModel` is **required** (and must differ from
-the audit model) whenever the feature is enabled.
+why `modelHistory.targetAnaplanModel` is **required** whenever the feature is enabled. NOTE: You can utilize the same Anaplan model for both Audit and Model History if you desire.
 
 ### What happens on each run
 
