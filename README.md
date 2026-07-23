@@ -245,6 +245,183 @@ Optional UX/attribution lists (uploaded when their file-name key is set):
 
 ---
 
+## How Model History works
+
+Model History is a **second, independent pipeline** that captures the
+built-in change history Anaplan keeps for each model — every structural and
+data change, who made it, and when — and accumulates it into a permanent,
+report-ready store. It's separate from the audit-events pipeline: it can be
+turned on or off on its own (`modelHistory.enabled`), runs on its own
+schedule, and lands in its **own** Anaplan reporting model.
+
+### Why it's separate from the audit log
+
+The tenant audit log tells you *an action happened on a model*. Model
+History tells you *what actually changed inside the model* — a new line
+item, a formula edit, a list member added, a role change. They answer
+different questions, and history grows a model **much** faster than audit
+events do, so it lives in its own Anaplan model. That keeps the audit model
+lean and lets you size, refresh, and iterate on each independently. This is
+why `modelHistory.targetAnaplanModel` is **required** (and must differ from
+the audit model) whenever the feature is enabled.
+
+### What happens on each run
+
+For every model in scope, the tool:
+
+1. **Triggers the export.** It finds the export action named by
+   `exportActionName` (default `MODEL_HISTORY_EXPORT`) in that model and
+   fires it through the Anaplan Integration API. A model with no such export
+   action is silently skipped — not every model needs history captured.
+2. **Waits for completion.** It polls the export task every ~10 seconds
+   until it reports `COMPLETE`, up to `exportTimeoutSeconds` (default 600 =
+   10 minutes). A `FAILED`, `CANCELLED`, or timed-out export is logged as a
+   warning and skipped — it never crashes the run.
+3. **Downloads and normalizes the CSV.** Anaplan history exports have a
+   *dynamic* column layout — the columns present depend on what changed in
+   the window — so the tool maps those shifting headers onto a **fixed,
+   predictable schema** (date, user, description, previous/new value,
+   module/list, line item/property, object, and more). Ragged rows are
+   padded, extra columns tolerated.
+4. **Assigns a stable record ID.** Each change gets a deterministic ID
+   (a SHA-256 hash of its immutable fields). That ID is the dedup key, so
+   re-exporting an overlapping window never creates duplicate rows — the
+   same change always lands on the same row.
+5. **Classifies the change.** From the free-text `description`, two
+   controlled-vocabulary columns are derived — `change_type` (e.g. *Line
+   item created*, *Formula changed*) and `object_type` (e.g. *Module*,
+   *List*) — so the report can pivot and filter cleanly instead of scanning
+   free text. Classification is rule-based and **always** produces a value —
+   a change no rule matches falls back to a generic label rather than a
+   blank, and `anaplan-audit mh-unmatched` lists any descriptions worth a
+   new rule.
+6. **Stores, uploads, backs up, and purges** (details below).
+
+Models are exported **in parallel** — up to `maxConcurrentExports` (default
+5) at a time — but all database writes happen serially afterward on one
+thread, by design, to avoid write contention. Raise the concurrency for
+tenants with many models; lower it if you hit API rate limits.
+
+### Retention, backups, and long-term storage
+
+This is the part worth understanding well, because it's what makes the tool
+a *history* system rather than a 30-day window.
+
+- **Anaplan only exposes a limited history window; the tool keeps far
+  more.** Every change the tool has ever downloaded is retained locally and
+  re-uploaded, so your Anaplan report shows history reaching back well
+  beyond what a single live export would return.
+- **Retention window.** Model History keeps `retentionYears` of data
+  (default **2 years**). On each run, records older than the cutoff
+  (`today − retentionYears`) are deleted from the local store. Set it higher
+  to keep more; there's no hard cap.
+- **Backup before every purge.** When `backupBeforePurge` is `true` (the
+  default), the tool writes a full timestamped copy of the local database —
+  `<database>_backup_YYYYMMDD_HHMMSS.duckdb` — *before* it deletes anything. If a
+  purge ever removed something it shouldn't, the prior state is recoverable
+  from that backup.
+- **Rolling backup window.** Only the most recent `maxBackupsToKeep`
+  backups (default **7**) are kept; older ones are removed automatically so
+  backups don't grow without bound. Seven daily backups ≈ a one-week
+  recovery window on a nightly schedule.
+- **Going beyond the retention window.** The local store is a working set,
+  not a system of record for *unlimited* history. If you need history older
+  than `retentionYears`, export it to an external SQL database or data
+  warehouse before the cutoff passes. Raising `retentionYears` also works,
+  at the cost of a larger local database and Anaplan model.
+
+> **On the webinar:** the one-liner is *"Anaplan gives you a short live
+> history window; this tool captures it on every run, accumulates it into a
+> permanent store you control, keeps a rolling set of backups, and prunes to
+> your retention policy — with a full backup taken before anything is ever
+> deleted."*
+
+### What lands in Anaplan
+
+Three CSVs load into the Model History model via the `anaplanProcess`
+(default `Load Model History`):
+
+| File source | What it is |
+|---|---|
+| `MODEL_REGISTRY.csv` | One row per model captured — `model_id, model_name, workspace_id, workspace_name, last_synced_at`. Your index of *which* models have history. |
+| `MODEL_HISTORY_LIST.csv` | One row per change record (`record_id, model_id, date_time_utc`) — the numbered list every change item hangs off. |
+| `MODEL_HISTORY_NORMALIZED.csv` | The full change detail — user, description, previous/new value, module/list, object, plus the derived `change_type` / `object_type`. |
+
+### Failure isolation
+
+Model History **never crashes the audit run**. A missing export action, a
+failed or slow export, an upload hiccup — each is caught, logged as a
+warning, and the run continues. A non-fatal model-history problem surfaces
+as exit code `6` so a scheduler can distinguish it from a healthy run
+without treating it as a hard failure.
+
+---
+
+## Additional attributes explained
+
+Every Anaplan audit event carries an `additionalAttributes` payload — a
+small bag of extra context specific to that event type. A UX event names the
+app and page; an integration event names the CloudWorks integration; an
+action event names the action and its type; and so on. The raw payload is
+nested and event-type-specific, which makes it awkward to report on
+directly. The **additional-attributes extractor** lifts those nested values
+into **named, flat columns** your reporting model can pivot on.
+
+### How it works
+
+1. **Flatten.** As events are transformed, the nested `additionalAttributes`
+   object is flattened — `additionalAttributes.appId`, `.appName`, etc.
+2. **Extract into named columns.** Known fields are projected into stable
+   snake_case columns (`app_id`, `app_name`, `page_id`, …). Every event gets
+   every column — populated where the field exists for that event type,
+   blank where it doesn't — so downstream imports see one uniform shape.
+3. **Archive the raw payload.** When `retainRawJson` is `true` (default),
+   the complete original payload is also stored as a JSON string in
+   `additional_attributes_raw`. If Anaplan adds a new attribute the tool
+   doesn't yet break out, it's still captured — nothing is lost.
+
+### The six categories
+
+Extraction is grouped into categories. Each can be toggled on or off
+independently under `additionalAttributes.categories`, and each owns a
+fixed set of columns:
+
+| Category | Columns it fills | Comes from events like |
+|---|---|---|
+| `uxAppPage` | `app_id`, `app_name`, `page_id`, `page_name` | UX app/page views and activity |
+| `cwIntegration` | `integration_id`, `integration_name`, `integration_flow_id` | CloudWorks integration runs |
+| `action` | `action_id`, `action_name`, `action_type` | Import/export/other action runs |
+| `process` | `process_id`, `process_name` | Process runs |
+| `role` | `role_id`, `role_name` | Role / permission changes |
+| `targetUser` | `target_user_id`, `target_user_name` | Admin events acting *on another user* |
+
+> `targetUser` is the one that's easy to miss and valuable to call out: on an
+> admin event, the `USER` fields are *who did it*, and `target_user_*` is
+> *who it was done to* (e.g. an admin deactivating another user).
+
+### Enable, disable, and lists
+
+- **`enabled` per category** — turn a category on to populate its columns,
+  off to force them blank. Disabling a category you don't report on keeps
+  the data tidy and the CSVs narrower.
+- **`emitLists`** — in addition to filling the columns, build a small
+  staging list of the distinct values for that category (e.g. the set of
+  UX apps seen). Only useful if your model actually imports that list;
+  leave it off otherwise. UX pages nest under their app (a page carries its
+  `parent_code`), so if you import both, run the app import before the page
+  import.
+- **`retainRawJson`** — keep (or drop) the full JSON archive column. Keeping
+  it is the forward-compatibility hedge; dropping it trims width if you're
+  certain you'll never need attributes beyond the named columns.
+
+> **On the webinar:** *"Anaplan tags each audit event with extra context —
+> the app, the integration, the action, the role, even the user an admin
+> action targeted. The tool pulls all of that into clean named columns you
+> can slice in the report, and keeps the raw payload as a safety net so
+> we're covered even when Anaplan adds something new."*
+
+---
+
 ## Commands
 
 | Command | What it does |
