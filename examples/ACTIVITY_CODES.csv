@@ -6,15 +6,15 @@ CONN-4,Workspace associated with connection configuration successfully,The affec
 CONN-5,Workspace to connection configuration deleted successfully,The affected connection ID.,Workspace to connection configuration association was deleted.,CONN,SAML CONNECTION
 CONN-6,Connection migrated successfully,The affected connection ID.,--,CONN,SAML CONNECTION
 CONN-7,Connection migration rolled back successfully,The affected connection ID.,--,CONN,SAML CONNECTION
-AUTHZ-0,Authorization failure,,Unauthorized entry attempt events are only logged when an unauthorized status is triggered without an authorization granted status.,AUTHZ,ACCESS CONTROL
+AUTHZ-0,Authorization failure,N/A,Unauthorized entry attempt events are only logged when an unauthorized status is triggered without an authorization granted status.,AUTHZ,ACCESS CONTROL
 AUTHZ-1,Access granted,The associated user ID.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-2,Access denied,The associated user ID.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-3,Role assigned,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-4,Role assignment denied,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-6,Role unassigned,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
 AUTHZ-7,Role unassignment denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
-AUTHZ-11,Access control event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
-AUTHZ-17,Access control event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
+AUTHZ-11,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
+AUTHZ-17,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL
 USR-1,User created,The ID of the created user.,(In Anaplan),USR,USER ACTIVITY
 USR-2,User activated,The ID of the activated user.,(In Anaplan),USR,USER ACTIVITY
 USR-3,User enabled,The associated user ID.,(In the tenant),USR,USER ACTIVITY
@@ -80,13 +80,13 @@ USR-71,Successful import of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY
 USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY
-USR-75,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
-USR-81,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
-USR-82,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
-USR-83,User activity event (message pending Anaplan documentation),,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
-COMMENT-01,Comment added,,Comment events have no associated object ID.,COMMENT,COMMENT
-COMMENT-02,Comment deleted,,Comment events have no associated object ID.,COMMENT,COMMENT
-COMMENT-03,Comments exported,,Comment events have no associated object ID.,COMMENT,COMMENT
+USR-75,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-81,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-82,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+USR-83,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY
+COMMENT-01,Comment added,N/A,Comment events have no associated object ID.,COMMENT,COMMENT
+COMMENT-02,Comment deleted,N/A,Comment events have no associated object ID.,COMMENT,COMMENT
+COMMENT-03,Comments exported,N/A,Comment events have no associated object ID.,COMMENT,COMMENT
 INT-01,Connection creation,The associated integration ID.,CloudWorks,INT,INTEGRATION
 INT-02,Connection deletion,The associated integration ID.,CloudWorks,INT,INTEGRATION
 INT-03,Connection update,The associated integration ID.,CloudWorks,INT,INTEGRATION
@@ -227,6 +227,6 @@ WF-1003,Workflow template execution started,The event code.,Workflow template ev
 WF-1004,Workflow template execution cancelled,The event code.,Workflow template event.,WF,WORKFLOW
 WF-1005,Workflow template execution resumed,The event code.,Workflow template event.,WF,WORKFLOW
 WF-1006,Workflow template execution initiated by end user,The event code.,Workflow template event.,WF,WORKFLOW
-OAUTH-0,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
-OAUTH-1,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
-OAUTH-2,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
+OAUTH-0,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
+OAUTH-1,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
+OAUTH-2,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
