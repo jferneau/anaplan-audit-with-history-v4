@@ -65,6 +65,9 @@ Copy [`settings.json.example`](settings.json.example) to `settings.json`
 For OAuth, run `anaplan-audit register --client-id <ID>` once; every later
 run refreshes automatically. Tokens are encrypted at rest.
 
+See **[Settings reference](#settings-reference)** below for what every
+setting does and when to change it.
+
 > One `settings.json` covers one tenant. For more tenants, use one file
 > each and run with `--config path/to/that.json`.
 
@@ -84,6 +87,106 @@ see what happened.
 Point cron, a scheduled task, or a CloudWorks job at `anaplan-audit run`.
 A typical cadence is audit events every 1–4 hours and Model History nightly.
 Overlapping runs are prevented automatically, so you can schedule freely.
+
+---
+
+## Settings reference
+
+Everything lives in one `settings.json`. Most keys have safe defaults — you
+only *need* to set your tenant name, auth mode, what to audit, and your
+target model(s). Here's what each setting does and when to change it.
+
+### Core
+
+| Setting | What it does |
+|---|---|
+| `auditEnabled` | Master switch for the audit-events pipeline. At least one of this or `modelHistory.enabled` must be `true`. |
+| `anaplanTenantName` | Your tenant's display name. Stamped onto every audit row so a multi-tenant report can tell them apart. |
+| `authenticationMode` | `OAuth` (recommended), `cert_auth`, or `basic`. |
+| `database` | Path to the local database file the tool builds and reuses. Point at a **fresh** file for v4. |
+| `lastRun` | Watermark of the last successful run (managed for you). Leave `0` on first run — the tool only pulls new events after that. |
+| `auditBatchSize` | Events fetched per API page (default `1000`). Rarely changed. |
+| `auditRetentionYears` | How many years of audit events to keep locally. `0` = keep forever. A backup is taken before any purge. |
+
+### What to audit
+
+| Setting | What it does |
+|---|---|
+| `workspaceModelFilterApproach` | `select` = audit only the models you list; `skip` = audit everything *except* the ones you list. |
+| `workspaceModelCombos` | The list of `{ workspaceId, modelId }` pairs for the mode above. **Names or IDs both work** — names are resolved at runtime, so config survives model rebuilds. |
+
+> Audit **events** are always read tenant-wide, and all workspaces/models are
+> loaded so every event resolves to its model. This scope controls which
+> models the tool pulls detailed **action/file** metadata for — keep it
+> focused to keep runs fast.
+
+### Authentication
+
+| Setting | What it does |
+|---|---|
+| `oauthClientId` | Your OAuth client ID. Filled in automatically when you run `anaplan-audit register`. |
+| `rotatableToken` | Leave `true` for standard OAuth clients (tokens rotate on each refresh). |
+| `certPublicPath` / `certPrivatePath` / `certPassphrase` | PEM certificate paths for `cert_auth` mode. |
+
+> Basic-auth credentials go in a local `.env` file (`ANAPLAN_AUDIT_BASIC_USERNAME`
+> / `ANAPLAN_AUDIT_BASIC_PASSWORD`), never in `settings.json`.
+
+### Audit reporting model — `targetAnaplanModel`
+
+`workspaceId` / `modelId` point at your Audit reporting model. Inside
+`objects`:
+
+| Setting | What it does |
+|---|---|
+| `processName` | The Anaplan process that imports the uploaded CSVs. Set this for the standard (multi-file) setup. |
+| `...FileName` (e.g. `usersFileName`, `auditEventsFileName`) | The **exact names** of the file sources in your model. Defaults match the standard reporting model — override only if yours differ. |
+
+<details>
+<summary><b>Optional: single-file mode, refresh log, list sync</b></summary>
+
+- **Single-file mode** — instead of `processName`, set `auditFileName` +
+  `auditImportName` to upload one blended CSV through a single import.
+- **`lastRunFileName` / `lastRunImportName`** — optionally push the last-run
+  timestamp into the model for display.
+- **Refresh log** (`batchIdListName`, `refreshLogModuleName`,
+  `refreshLogTimeStampLineItem`, `refreshLogRecordsLoadedLineItem`) — on each
+  successful run, records when it ran and how many rows loaded. Blank any of
+  these to turn it off.
+- **`syncLists`** — a safety net that adds any brand-new codes (e.g.
+  `EVENT_ID`, `AUDIT_ID`) into their lists directly, for models whose imports
+  don't create list items on their own. Failures here never fail the run.
+
+</details>
+
+### Model History — `modelHistory`
+
+| Setting | What it does |
+|---|---|
+| `enabled` | Turns on the per-model change-history pipeline. |
+| `targetAnaplanModel` | The **separate** Anaplan model change history loads into (required when enabled — it never shares the audit model, because history grows a model much faster). |
+| `exportActionName` | The Anaplan export action that dumps a model's history (default `MODEL_HISTORY_EXPORT`). |
+| `anaplanProcess` | The process that loads the history CSVs (default `Load Model History`). |
+| `retentionYears` | Years of history to keep (default `2`). |
+| `exportTimeoutSeconds`, `maxConcurrentExports`, `backupBeforePurge`, `maxBackupsToKeep` | Performance/safety tuning — defaults are sensible. |
+
+### Anaplan API endpoints & advanced
+
+<details>
+<summary><b>URIs and extracted-attribute categories</b></summary>
+
+- **`uris`** — the Anaplan API endpoints. Defaults target the US (`us1a`)
+  cloud; change them only if you're on a different or single-tenant cloud.
+- **`additionalAttributes`** — pulls extra detail (UX app/page, integration,
+  action, process, role, target-user) out of each event into named columns.
+  Toggle a `categories` entry `enabled` on/off to keep or drop its columns;
+  `emitLists` also builds a staging list for that category (only useful if
+  your model imports it). `retainRawJson` keeps a full JSON archive column
+  for forward compatibility.
+
+</details>
+
+The shipped [`settings.json.example`](settings.json.example) contains every
+key with inline notes — it's the fastest way to see the full shape.
 
 ---
 
