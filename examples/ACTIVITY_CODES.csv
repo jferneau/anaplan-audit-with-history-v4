@@ -1,3 +1,223 @@
-Event Code,Event Message,Associated Object ID,Notes
-CONN-1,Connection configuration created successfully,The affected connection ID.,--
-CONN-2,Connection configuration updated successfully,The affected connection ID.,--
+Event Code,Event Message,Associated Object ID,Notes,Parent Code,Parent
+CONN-1,Connection configuration created successfully,The affected connection ID.,--,CONN,SAML CONNECTION
+CONN-2,Connection configuration updated successfully,The affected connection ID.,--,CONN,SAML CONNECTION
+CONN-3,Connection configuration deleted successfully,The affected connection ID.,--,CONN,SAML CONNECTION
+CONN-4,Workspace associated with connection configuration successfully,The affected connection ID.,Workspace is associated with a connection configuration.,CONN,SAML CONNECTION
+CONN-5,Workspace to connection configuration deleted successfully,The affected connection ID.,Workspace to connection configuration association was deleted.,CONN,SAML CONNECTION
+CONN-6,Connection migrated successfully,The affected connection ID.,--,CONN,SAML CONNECTION
+CONN-7,Connection migration rolled back successfully,The affected connection ID.,--,CONN,SAML CONNECTION
+AUTHZ-0,Authorization failure,,Unauthorized entry attempt events are only logged when an unauthorized status is triggered without an authorization granted status.,AUTHZ,ACCESS CONTROL
+AUTHZ-1,Access granted,The associated user ID.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-2,Access denied,The associated user ID.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-3,Role assigned,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-4,Role assignment denied,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-6,Role unassigned,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+AUTHZ-7,Role unassignment denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL
+USR-1,User created,The ID of the created user.,(In Anaplan),USR,USER ACTIVITY
+USR-2,User activated,The ID of the activated user.,(In Anaplan),USR,USER ACTIVITY
+USR-3,User enabled,The associated user ID.,(In the tenant),USR,USER ACTIVITY
+USR-4,User disabled,The associated user ID.,(In the tenant),USR,USER ACTIVITY
+USR-5,User updated,The ID of the updated user.,--,USR,USER ACTIVITY
+USR-8,User login success,The ID associated with the user login.,--,USR,USER ACTIVITY
+USR-9,User login failure,The ID associated with the user login.,--,USR,USER ACTIVITY
+USR-10,User logout success,The ID associated with the user logout.,--,USR,USER ACTIVITY
+USR-11,User logout failure,The ID associated with the user logout.,--,USR,USER ACTIVITY
+USR-12,User session time-out,The ID associated with the user who timed out.,--,USR,USER ACTIVITY
+USR-13,"User access to model, success",The associated model ID.,"Opens a model in Manage Models, opens a bookmarked model, selects a model name in Home/Administration, or navigates to the source model in the UX. ipAddress=NA on this event.",USR,USER ACTIVITY
+USR-14,User access-to-model failure,The associated model ID.,Failed access via the same paths as USR-13. userAgent=NA on this event.,USR,USER ACTIVITY
+USR-15,User assigned to tenant success,The associated user ID.,--,USR,USER ACTIVITY
+USR-16,User assigned to tenant failure,The associated user ID.,--,USR,USER ACTIVITY
+USR-17,User removed from tenant success,The associated user ID.,--,USR,USER ACTIVITY
+USR-18,User removed from tenant failure,The associated user ID.,--,USR,USER ACTIVITY
+USR-19,User accessed dashboard,The associated model ID.,--,USR,USER ACTIVITY
+USR-20,User executed action,The associated model ID.,--,USR,USER ACTIVITY
+USR-21,User added to workspace,The ID of the added user.,--,USR,USER ACTIVITY
+USR-22,User removed from workspace,The ID of the removed user.,--,USR,USER ACTIVITY
+USR-23,User assigned to a model role,The ID of the user assigned the model role.,Includes the No Access role. Assignments and removals of No Access are recorded.,USR,USER ACTIVITY
+USR-24,User unassigned from a model role,The ID of the user unassigned from a role.,Includes the No Access role. Assignments and removals of No Access are recorded.,USR,USER ACTIVITY
+USR-25,User assigned or unassigned the Workspace Administrator role,The ID associated with the user whose role has changed.,Records assignment or removal of the Workspace Administrator role.,USR,USER ACTIVITY
+USR-26,User email updated,The associated user ID.,--,USR,USER ACTIVITY
+USR-27,User first name updated,The associated user ID.,--,USR,USER ACTIVITY
+USR-28,User last name updated,The associated user ID.,--,USR,USER ACTIVITY
+USR-29,User deleted,The associated user ID.,--,USR,USER ACTIVITY
+USR-30,Visitor added to workspace,The ID of the added visiting user.,--,USR,USER ACTIVITY
+USR-31,Visitor removed from workspace,The ID of the removed visiting user.,--,USR,USER ACTIVITY
+USR-32,Miscellaneous Data Export,The associated model ID.,"Formerly ""Ad Hoc Data Export"" in earlier releases.",USR,USER ACTIVITY
+USR-33,Assign,The associated model ID.,An object associated to a corresponding list.,USR,USER ACTIVITY
+USR-34,Copy branch,The associated model ID.,--,USR,USER ACTIVITY
+USR-35,Create,The associated model ID.,A create action was made.,USR,USER ACTIVITY
+USR-36,Data export from action,The associated model ID.,(Within Anaplan),USR,USER ACTIVITY
+USR-38,Delete from list using Selection action has been executed,The associated model ID.,--,USR,USER ACTIVITY
+USR-39,Model imported via Manage models,The associated model ID.,--,USR,USER ACTIVITY
+USR-40,An executed optimizer action,The associated model ID.,--,USR,USER ACTIVITY
+USR-41,A process action has been executed,The associated process ID.,--,USR,USER ACTIVITY
+USR-42,Line Items updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-43,UX board page opened,UX App GUID and UX Page GUID.,"Both display separated by ""/"".",USR,USER ACTIVITY
+USR-44,UX worksheet page opened,UX App GUID and UX Page GUID.,"Both display separated by ""/"".",USR,USER ACTIVITY
+USR-45,UX report page opened,UX App GUID and UX Page GUID.,"Both display separated by ""/"".",USR,USER ACTIVITY
+USR-46,"UX board ""My Page"" opened",UX App GUID and UX Page GUID.,UX App GUID displays as null.,USR,USER ACTIVITY
+USR-47,"UX worksheet ""My Page"" opened",UX App GUID and UX Page GUID.,UX App GUID displays as null.,USR,USER ACTIVITY
+USR-48,UX app opened,UX App GUID.,--,USR,USER ACTIVITY
+USR-49,UX page model changed,Not applicable.,--,USR,USER ACTIVITY
+USR-50,Users updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-51,List items updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-52,Module data updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-53,Versions items updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-54,Model updated from an import,The associated model ID.,--,USR,USER ACTIVITY
+USR-55,User password change,The associated user ID.,--,USR,USER ACTIVITY
+USR-56,User password change failure,The associated user ID.,--,USR,USER ACTIVITY
+USR-57,User granted Exception access.,The associated user ID.,--,USR,USER ACTIVITY
+USR-58,Revocation of Exception access.,The associated user ID.,--,USR,USER ACTIVITY
+USR-59,UX board page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY
+USR-60,UX worksheet page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY
+USR-61,UX report page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY
+USR-62,UX board My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY
+USR-63,UX worksheet My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY
+USR-65,User submitted question,UX App GUID.,--,USR,USER ACTIVITY
+USR-71,Successful import of IP list,Not applicable.,--,USR,USER ACTIVITY
+USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY
+USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY
+USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY
+COMMENT-01,Comment added,,Comment events have no associated object ID.,COMMENT,COMMENT
+COMMENT-02,Comment deleted,,Comment events have no associated object ID.,COMMENT,COMMENT
+COMMENT-03,Comments exported,,Comment events have no associated object ID.,COMMENT,COMMENT
+INT-01,Connection creation,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-02,Connection deletion,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-03,Connection update,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-04,Data Integration update,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-05,Data Integration creation,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-06,Data Integration execution,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-07,Data Integration deletion,The associated integration ID.,CloudWorks,INT,INTEGRATION
+INT-50,ADO Pipeline created,The associated pipeline ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-51,ADO Pipeline deleted,The associated pipeline ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-52,ADO Pipeline updated,The associated pipeline ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-53,ADO Connection created,The associated connection ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-54,ADO Connection updated,The associated connection ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-55,ADO Connection deleted,The associated connection ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-56,ADO Dataspace created,The associated dataspace ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-57,ADO Dataspace updated,The associated dataspace ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-58,ADO Dataspace deleted,The associated dataspace ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-61,ADO Pipeline started,The associated pipeline ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-62,ADO Pipeline canceled,The associated pipeline ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-63,ADO Schedule created,The associated schedule ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-64,ADO Schedule updated,The associated schedule ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-65,ADO Schedule deleted,The associated schedule ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+INT-66,ADO connection validation attempted,The associated connection ID.,Anaplan Data Orchestrator (ADO),INT,INTEGRATION
+FRCST-01,Data Collection created - success,The associated integration ID.,Forecaster (replaces legacy PIQ codes),FRCST,FORECASTER
+FRCST-02,Data Collection created - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-03,Data Collection renamed - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-04,Data Collection renamed - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-05,Data Collection deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-06,Data Collection deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-07,Data Collection reran - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-08,Data Collection reran - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-09,Insights sent - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-10,Insights sent - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-11,Data Collection bulk deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-12,Data Collection bulk deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-13,Data Collection bulk deleted - partial success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-30,Forecast Model created - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-31,Forecast Model created - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-32,Forecast Model renamed - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-33,Forecast Model renamed - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-34,Forecast Model deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-35,Forecast Model deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-36,Forecast Model bulk deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-37,Forecast Model bulk deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-38,Forecast Model bulk deleted - partial success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-60,Forecast Action created - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-61,Forecast Action created - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-62,Forecast Action deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-63,Forecast Action deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-64,Forecast Action run completed - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-65,Forecast Action run completed - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-66,Forecast Action schedule created - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-67,Forecast Action schedule created - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-68,Forecast Action schedule edited - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-69,Forecast Action schedule edited - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-70,Forecast Action schedule activated - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-71,Forecast Action schedule activated - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-72,Forecast Action schedule deactivated - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-73,Forecast Action schedule deactivated - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-74,Forecast Action bulk deleted - success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-75,Forecast Action bulk deleted - failure,The associated integration ID.,Forecaster,FRCST,FORECASTER
+FRCST-76,Forecast Action bulk deleted - partial success,The associated integration ID.,Forecaster,FRCST,FORECASTER
+PIQ-01,Data Collection created,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-02,Changed Data Collection name,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-03,Data Collection deleted,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-04,Rerun Data Collection assembly,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-05,Forecast model created,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-06,Changed Forecast model name,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-07,Forecast model deleted,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-08,Forecast action created,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-09,Forecast action edited,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-10,Changed Forecast action name,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-11,Forecast action deleted,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-12,Forecast action added or changed schedule,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-13,Forecast action schedule paused,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-14,Forecast action executed,The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+PIQ-15,"Backtest imported, forecast model",The associated integration ID.,Legacy PlanIQ — superseded by FRCST-* codes. Retained for historical events.,PIQ,PLANIQ
+DSM-071,Create key pair with key,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-072,Delete key pair with key,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-229,Add a guardpoint with a policy,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-231,Add a group guardpoint,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-235,Update a guardpoint,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-238,Delete a group guardpoint,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-239,Create symmetric key with key,The user ID associated with the action.,The same key is used for both encryption and decryption.,DSM,ENCRYPTION ACTIVITY
+DSM-240,Delete symmetric key,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-267,A user logged in,The logged-in user ID.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-281,Delete an online policy,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-405,Assigned roles to a user in the domain,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-406,Remove user from domain,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-425,Enable user in a domain,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-426,Switch the domain,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-501,Marked guardpoint pending delete with a policy,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-502,Delete a pending guardpoint with a policy,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY
+DSM-576,Update Key,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-674,Create key attribute,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0071I,Create key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-071.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0072I,Delete key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-072.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0229I,Add a guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-229.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0231I,Add a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-231.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0235I,Update a guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-235.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0238I,Delete a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-238.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0239I,Create symmetric key with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-239.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0240I,Delete symmetric key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-240.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0267I,A user logged in,The logged-in user ID.,BYOK DAO prefix variant of DSM-267.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0281I,Delete an online policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-281.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0405I,Assigned roles to a user in the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-405.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0406I,Remove user from domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-406.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0425I,Enable user in a domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-425.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0426I,Switch the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-426.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0501I,Marked guardpoint pending delete with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-501.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0502I,Delete a pending guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-502.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO576I,Update Key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-576.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0674I,Create key attribute,The user ID associated with the action.,BYOK DAO prefix variant of DSM-674.,DSM,ENCRYPTION ACTIVITY
+DSM-046,Delete host,The user ID associated with the action.,Host management.,DSM,ENCRYPTION ACTIVITY
+DSM-048,Update host,The user ID associated with the action.,Host management.,DSM,ENCRYPTION ACTIVITY
+DSM-521,Add a host group,The user ID associated with the action.,Host group management.,DSM,ENCRYPTION ACTIVITY
+DSM-531,Delete a host group,The user ID associated with the action.,Host group management.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0046I,Delete host,The user ID associated with the action.,Host management DAO prefix variant of DSM-046.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0048I,Update host,The user ID associated with the action.,Host management DAO prefix variant of DSM-048.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0521I,Add a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-521.,DSM,ENCRYPTION ACTIVITY
+DSM-DAO0531I,Delete a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-531.,DSM,ENCRYPTION ACTIVITY
+WF-100,Task created,The event code.,Workflow task event.,WF,WORKFLOW
+WF-101,Task started,The event code.,Workflow task event.,WF,WORKFLOW
+WF-102,Task completed,The event code.,Workflow task event.,WF,WORKFLOW
+WF-103,Task opened,The event code.,Workflow task event.,WF,WORKFLOW
+WF-104,Task cancelled,The event code.,Workflow task event.,WF,WORKFLOW
+WF-106,Task updated,The event code.,Workflow task event.,WF,WORKFLOW
+WF-107,Task rejected,The event code.,"Workflow task event. Previously documented as ""Task reopened"" in earlier releases.",WF,WORKFLOW
+WF-108,Task sent back,The event code.,Workflow task event.,WF,WORKFLOW
+WF-109,Task transferred,The event code.,Workflow task event.,WF,WORKFLOW
+WF-110,Task sent reminder,The event code.,Workflow task event.,WF,WORKFLOW
+WF-1000,Workflow template created,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1001,Workflow template published,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1002,Draft version added to workflow template and published,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1003,Workflow template execution started,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1004,Workflow template execution cancelled,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1005,Workflow template execution resumed,The event code.,Workflow template event.,WF,WORKFLOW
+WF-1006,Workflow template execution initiated by end user,The event code.,Workflow template event.,WF,WORKFLOW
+OAUTH-0,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
+OAUTH-1,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH
+OAUTH-2,OAuth authentication event (description pending Anaplan documentation),,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH

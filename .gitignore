@@ -38,6 +38,9 @@ coverage.xml
 # macOS
 .DS_Store
 
+# LibreOffice / Office lock files (created when a CSV is open in a viewer)
+.~lock.*#
+
 # IDEs
 .vscode/
 .idea/

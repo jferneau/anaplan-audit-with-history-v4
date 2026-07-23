@@ -478,6 +478,53 @@ class TestAuditQueryRunner:
         assert row["OBJECT_TYPE"] == "Model"
         assert row["OBJECT_NAME"] == "Prod Model"
 
+    def test_event_category_derives_from_taxonomy_even_when_uncatalogued(
+        self, tmp_path: Path
+    ) -> None:
+        """EVENT_CATEGORY is the EVENT_ID parent, derived from the code prefix
+        by the taxonomy UDF — not looked up from the catalog. So a code that
+        isn't in act_codes (the exact orphan case, e.g. WF-112) still gets its
+        category, while a known code resolves the same way."""
+        db_path = tmp_path / "test.db"
+        events_df = pd.DataFrame(
+            [
+                _event(id="e1", eventTypeId="USR-8"),  # in the catalog
+                _event(id="e2", eventTypeId="WF-112"),  # NOT in the catalog
+            ]
+        )
+        aa = [c for c in events_df.columns if c.startswith("additionalAttributes.")]
+        events_df[aa] = events_df[aa].astype("string")
+        seed_tables(
+            db_path,
+            {
+                "events": events_df,
+                "users": pd.DataFrame(
+                    [{"id": "user-001", "userName": "u@t.com", "displayName": "U"}]
+                ),
+                "workspaces": pd.DataFrame([{"id": "ws-001", "name": "WS"}]),
+                "models": pd.DataFrame([{"id": "m-1", "name": "M"}]),
+                "cloudworks": pd.DataFrame(
+                    [{"integrationId": "cw-1", "name": "CW", "modelId": "m-1"}]
+                ),
+                # Only USR-8 is catalogued; WF-112 is deliberately absent.
+                "act_codes": pd.DataFrame(
+                    [
+                        {
+                            "Event Code": "USR-8",
+                            "Event Message": "User login success",
+                            "Associated Object Id": "",
+                            "Notes": "--",
+                        }
+                    ]
+                ),
+                "actions": pd.DataFrame([{"id": "a1", "name": "A", "model_id": "m-1"}]),
+            },
+        )
+        df = run_audit_query(db_path, tenant_name="T")
+        by_id = dict(zip(df["EVENT_ID"], df["EVENT_CATEGORY"], strict=True))
+        assert by_id["USR-8"] == "USER ACTIVITY"
+        assert by_id["WF-112"] == "WORKFLOW"
+
     def test_tenant_name_substituted(self, tmp_path: Path) -> None:
         """TENANT_NAME column contains the supplied tenant_name value."""
         db_path = tmp_path / "test.db"

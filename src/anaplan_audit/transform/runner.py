@@ -11,6 +11,7 @@ import duckdb
 import pandas as pd
 import structlog
 
+from anaplan_audit import taxonomy
 from anaplan_audit.exceptions import QueryExecutionError
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
@@ -52,6 +53,9 @@ def run_audit_query(db_path: Path, *, tenant_name: str = "") -> pd.DataFrame:
             # machine's local timezone, and the query formats timestamps
             # via strftime, which renders in session time.
             conn.execute("SET TimeZone = 'UTC'")
+            # EVENT_CATEGORY is computed by the taxonomy UDF (single source of
+            # truth for EVENT_ID parentage, shared with the catalog augmentation).
+            taxonomy.register_udfs(conn)
             df: pd.DataFrame = conn.execute(sql, {"tenant_name": tenant_name}).df()
 
         logger.info("audit_query_executed", row_count=len(df), batch_ts=batch_ts)

@@ -57,6 +57,7 @@ from anaplan_audit.model_history.history_service import fetch_model_history
 from anaplan_audit.model_history.history_transform_service import normalize_model_history
 from anaplan_audit.model_history.upload import upload_model_history
 from anaplan_audit.transform.additional_attributes import enrich_event_dicts
+from anaplan_audit.transform.catalog import augment_activity_catalog
 from anaplan_audit.transform.loader import (
     _connect,
     _table_exists,
@@ -279,6 +280,12 @@ def _run_locked(
             log.info("pipeline_step_start", step="load_duckdb")
             t0 = time.monotonic()
             load_to_duckdb(db_path, datasets)
+            # Rebuild the activity-code catalog so ACTIVITY_CODES.csv is the
+            # complete, self-parenting EVENT_ID source: static codes plus every
+            # code seen in the events table, each carrying a prefix-derived
+            # parent. Without this, codes new to the audit stream land orphaned
+            # under All Events (they have no parent to map).
+            augment_activity_catalog(db_path)
             # v3.3.0 — refresh the additionalAttributes staging views
             # (spec Milestone 3). Idempotent and cheap; scoped to the
             # categories the operator has opted into via emitLists.

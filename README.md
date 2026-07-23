@@ -209,6 +209,10 @@ A few things that make the imports smooth:
   current audit scope, not old runs.
 - **UX pages nest under apps** — map `parent_code` on the UX_PAGE import, and
   run the UX_APP import before UX_PAGE.
+- **The EVENT_ID list is hierarchical** (`All Events → category → event code`).
+  Import `EVENT_CATEGORIES.csv` first to create the category tier, then map
+  **Parent ← `Parent Code`** on the `ACTIVITY_CODES` import so every code lands
+  under its category. See [How the EVENT_ID list stays orphan-free](#how-the-event_id-list-stays-orphan-free).
 - **For Model History,** if `change_type` / `object_type` are list-formatted,
   pre-load the `MH_CHANGE_TYPES` / `MH_OBJECT_TYPES` lists so every value
   matches.
@@ -227,7 +231,8 @@ A few things that make the imports smooth:
 | `actionsFileName` → `ACTION_LIST.csv` | `ACT_CT, id, name, type, workspace_id, model_id, workspace_name, model_name` |
 | `filesFileName` → `FILE_LIST.csv` | file metadata + `workspace_id, model_id, workspace_name, model_name` |
 | `cloudworksFileName` → `CLOUDWORKS_LIST.csv` | CloudWorks integration metadata |
-| `activityCodesFileName` → `ACTIVITY_CODES.csv` | the activity-code catalog |
+| `activityCodesFileName` → `ACTIVITY_CODES.csv` | the EVENT_ID list source — `Event Code, Event Message, Associated Object ID, Notes, Parent Code, Parent` |
+| *(one-time)* `EVENT_CATEGORIES.csv` | the EVENT_ID category tier — `Code, Name, Parent`. Imported once to seed the parents |
 
 Optional UX/attribution lists (uploaded when their file-name key is set):
 `uxAppListFileName`, `uxPageListFileName`, and CloudWorks / Action / Process
@@ -406,6 +411,47 @@ fixed set of columns:
 - **`retainRawJson`** — keep (or drop) the full JSON archive column. Keeping
   it is the forward-compatibility hedge; dropping it trims width if you're
   certain you'll never need attributes beyond the named columns.
+
+---
+
+## How the EVENT_ID list stays orphan-free
+
+Every audit event is one of Anaplan's event-type codes — `USR-8`, `AUTHZ-11`,
+`WF-112`, `DSM-071`. In the reporting model these become a **hierarchical
+list**, `EVENT_ID`: `All Events → category → event code`. The value of that
+list is the grouping — "show me all Access Control events", "everything under
+Workflow". A code with no parent breaks that grouping: it dangles at the root,
+uncategorised.
+
+The tool guarantees every code is parented, by two design choices:
+
+1. **The category is derived from the code's prefix**, not looked up from a
+   catalog. `USR-*` → `USER ACTIVITY`, `AUTHZ-*` → `ACCESS CONTROL`, `WF-*` →
+   `WORKFLOW`, and so on, with an `UNCATEGORIZED` catch-all for any prefix the
+   map hasn't seen. So a code Anaplan invented last week — one no catalog lists
+   yet — still resolves to a parent the moment it appears.
+2. **`ACTIVITY_CODES.csv` is the single writer of the list.** It ships as the
+   documented catalog **plus** every code actually observed in your audit
+   stream, each row carrying a `Parent Code` / `Parent`. Because one import
+   owns the list and it always supplies a parent, nothing can be created
+   orphaned. The audit fact import only *references* `EVENT_ID` — it never
+   creates members.
+
+To set it up: import `EVENT_CATEGORIES.csv` once (creates the ~11 categories
+under `All Events`), then point the `ACTIVITY_CODES` import at `EVENT_ID` with
+**Parent ← `Parent Code`, matched on code**. On the next run this also
+re-parents any codes that were previously orphaned. The category shows up on
+each event row too, as `EVENT_CATEGORY`, so the Audit module can filter by it
+directly.
+
+> **On the webinar:** *"Anaplan keeps inventing new event codes. Instead of
+> chasing a master list, the tool reads the code's prefix and files it under
+> the right category automatically — so a code we've never seen before still
+> lands in the right place, and nothing ever dangles uncategorised."*
+
+The category vocabulary lives in one place — `anaplan_audit/taxonomy.py` — so
+adjusting a name or adding a prefix is a one-line change that flows to both the
+list and the event feed.
 
 ---
 

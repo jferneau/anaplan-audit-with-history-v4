@@ -107,21 +107,10 @@ SELECT
 	e."additionalAttributes.taskId" as WORKFLOW_TASK_ID ,
 	e."additionalAttributes.workflowTemplateId" as WORKFLOW_TEMPLATE_ID ,
 	e."additionalAttributes.commentId" as COMMENT_ID ,
-	CASE
-		WHEN e.eventTypeId LIKE 'USR-%' THEN 'User Activity'
-		WHEN e.eventTypeId LIKE 'AUTHZ-%' THEN 'Access Control'
-		WHEN e.eventTypeId LIKE 'CONN-%' THEN 'Connection Management'
-		WHEN e.eventTypeId LIKE 'INT-0%' THEN 'Integrations (CloudWorks)'
-		WHEN e.eventTypeId LIKE 'INT-%' THEN 'Integrations (ADO)'
-		WHEN e.eventTypeId LIKE 'FRCST-%' THEN 'Forecaster'
-		WHEN e.eventTypeId LIKE 'PIQ-%' THEN 'Forecaster (Legacy PlanIQ)'
-		WHEN e.eventTypeId LIKE 'WF-1%' AND length(e.eventTypeId) > 5 THEN 'Workflow (Template)'
-		WHEN e.eventTypeId LIKE 'WF-%' THEN 'Workflow (Task)'
-		WHEN e.eventTypeId LIKE 'COMMENT-%' THEN 'Comments'
-		WHEN e.eventTypeId LIKE 'DSM-%' THEN 'Encryption / Guardpoint (BYOK)'
-		WHEN e.eventTypeId LIKE 'OAUTH-%' THEN 'OAuth'
-		ELSE 'Other'
-	END as EVENT_CATEGORY ,
+	-- EVENT_CATEGORY is the EVENT_ID list parent, derived from the code prefix
+	-- via the event_parent_name UDF (anaplan_audit.taxonomy) — the single
+	-- source of truth shared with the ACTIVITY_CODES catalog's Parent column.
+	event_parent_name(COALESCE(e.eventTypeId, '')) as EVENT_CATEGORY ,
 	e.checksum as CHECKSUM
 FROM events e
 LEFT JOIN users u ON e.userId = u.id
