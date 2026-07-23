@@ -183,9 +183,21 @@ def load_to_duckdb(db_path: Path, datasets: dict[str, pd.DataFrame]) -> None:
                         )
                         continue
                     df = _sanitize_for_storage(df)
+                    # Declare an explicit type per column rather than let
+                    # ``CREATE TABLE AS SELECT`` infer it. DuckDB types an
+                    # empty or all-NULL column as INTEGER, so a metadata frame
+                    # that is 0-row (e.g. a tenant with no CloudWorks
+                    # integrations) or that omits a column entirely would land
+                    # as INTEGER and break audit_query.sql's ``upper()`` / text
+                    # joins ("No function matches upper(INTEGER)"). Same policy
+                    # the events table already applies via _event_column_type.
+                    col_defs = ", ".join(
+                        f'"{c}" {_metadata_column_type(df[c])}' for c in df.columns
+                    )
                     conn.register("_load_df", df)
+                    conn.execute(f'CREATE OR REPLACE TABLE "{table_name}" ({col_defs})')
                     conn.execute(
-                        f'CREATE OR REPLACE TABLE "{table_name}" AS SELECT * FROM _load_df'
+                        f'INSERT INTO "{table_name}" SELECT * FROM _load_df'
                     )
                     conn.unregister("_load_df")
                 logger.info(
@@ -210,6 +222,31 @@ def load_to_duckdb(db_path: Path, datasets: dict[str, pd.DataFrame]) -> None:
 def _event_column_type(column: str) -> str:
     """Return the declared DuckDB type for an events-table column."""
     return _EVENT_TYPED_COLUMNS.get(column, "VARCHAR")
+
+
+def _metadata_column_type(series: pd.Series) -> str:
+    """Return the declared DuckDB type for a metadata-table column.
+
+    Metadata frames carry mostly string IDs/names (the API models are all
+    string-coerced), so an empty or all-NULL column carries no type signal
+    and DuckDB's inference defaults it to INTEGER — which then breaks the
+    ``upper()`` and text-equality joins in audit_query.sql. Default such
+    columns to VARCHAR and only keep a native type when the data actually
+    proves one, mirroring the events table's explicit-type policy.
+    """
+    if series.isna().all():
+        return "VARCHAR"
+    kind = series.dtype.kind
+    if kind == "b":
+        return "BOOLEAN"
+    if kind in ("i", "u"):
+        return "BIGINT"
+    if kind == "f":
+        return "DOUBLE"
+    if kind == "M":
+        return "TIMESTAMP"
+    # Object, string, and anything unexpected -> text.
+    return "VARCHAR"
 
 
 def _norm_event_value(value: object, column: str) -> object:
