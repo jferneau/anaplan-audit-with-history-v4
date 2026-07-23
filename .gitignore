@@ -13,9 +13,6 @@ build/
 venv/
 env/
 
-# uv
-uv.lock
-
 # Runtime data — never commit real credentials or databases
 settings.json
 *.db
