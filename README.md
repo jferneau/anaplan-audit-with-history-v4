@@ -450,8 +450,12 @@ previously orphaned. The category shows up on each event row too, as
 > **Why `Event Name`, not `Event Message`?** Anaplan caps list-item names at 60
 > characters and requires them unique, so the tool computes `Event Name` — the
 > message when it fits and is unique, otherwise the code (e.g. `CONN-4`,
-> `USR-81`). Map the list item's **Name** to `Event Name`; keep the full
-> `Event Message` for a description property or the audit feed.
+> `USR-81`). Map the list item's **Name** to `Event Name`.
+>
+> **Keep the full description:** add a text-formatted list property to
+> `EVENT_ID` (e.g. `Event Description`) and map it **← `Event Message`**,
+> matched on `Event Code`. Properties have no 60-char limit, so every item
+> keeps its complete description even when its name falls back to the code.
 
 > **On the webinar:** *"Anaplan keeps inventing new event codes. Instead of
 > chasing a master list, the tool reads the code's prefix and files it under
