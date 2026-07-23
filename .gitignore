@@ -49,6 +49,7 @@ coverage.xml
 # Runtime logs and run-lock
 logs/
 *.lock
+!uv.lock  # the dependency lock IS committed (reproducible installs)
 
 # Internal session notes (not for public repo)
 session-notes.md
