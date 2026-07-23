@@ -8,6 +8,10 @@ new to the audit stream still arrives parented instead of orphaned.
 
 from __future__ import annotations
 
+import csv
+import importlib.resources
+import io
+from collections import Counter
 from contextlib import closing
 from pathlib import Path
 
@@ -17,6 +21,31 @@ import pandas as pd
 from anaplan_audit.transform.catalog import augment_activity_catalog
 
 from .conftest import seed_tables
+
+
+def _shipped_catalog_rows() -> list[dict[str, str]]:
+    txt = (
+        importlib.resources.files("anaplan_audit.data").joinpath("activity_events.csv").read_text()
+    )
+    return list(csv.DictReader(io.StringIO(txt)))
+
+
+class TestShippedCatalogIntegrity:
+    """The EVENT_ID list keys items on their name, so a message shared by two
+    codes collides on import — only the first parents, the rest are dropped.
+    Every code and every message must therefore be unique."""
+
+    def test_event_codes_are_unique(self) -> None:
+        codes = [r["Event Code"] for r in _shipped_catalog_rows()]
+        dupes = [c for c, n in Counter(codes).items() if n > 1]
+        assert dupes == [], f"duplicate Event Codes: {dupes}"
+
+    def test_event_messages_are_unique(self) -> None:
+        # A duplicate message = two list items with the same name = the exact
+        # collision that left USR-81/USR-82/... orphaned on import.
+        messages = [r["Event Message"] for r in _shipped_catalog_rows()]
+        dupes = [m for m, n in Counter(messages).items() if n > 1]
+        assert dupes == [], f"duplicate Event Messages (would collide on import): {dupes}"
 
 
 def _static_catalog() -> pd.DataFrame:
