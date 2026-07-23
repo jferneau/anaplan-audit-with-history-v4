@@ -232,7 +232,7 @@ A few things that make the imports smooth:
 | `actionsFileName` → `ACTION_LIST.csv` | `ACT_CT, id, name, type, workspace_id, model_id, workspace_name, model_name` |
 | `filesFileName` → `FILE_LIST.csv` | file metadata + `workspace_id, model_id, workspace_name, model_name` |
 | `cloudworksFileName` → `CLOUDWORKS_LIST.csv` | CloudWorks integration metadata |
-| `activityCodesFileName` → `ACTIVITY_CODES.csv` | the EVENT_ID list source — `Event Code, Event Message, Associated Object ID, Notes, Parent Code, Parent` |
+| `activityCodesFileName` → `ACTIVITY_CODES.csv` | the EVENT_ID list source — `Event Code, Event Message, Associated Object ID, Notes, Parent Code, Parent, Event Name` |
 | `eventCategoriesFileName` → `EVENT_CATEGORIES.csv` | the EVENT_ID category tier — `Code, Name, Parent`. Re-seeds the parents each run when configured |
 
 Optional UX/attribution lists (uploaded when their file-name key is set):
@@ -441,11 +441,17 @@ The tool guarantees every code is parented, by two design choices:
 To set it up: create an `EVENT_CATEGORIES.csv` file source and set
 `eventCategoriesFileName` so the tool re-seeds the ~11 categories under
 `All Events` on **every run** (belt-and-suspenders — the category tier can
-never go missing). Then point the `ACTIVITY_CODES` import at `EVENT_ID` with
-**Parent ← `Parent Code`, matched on code**, and add both imports to your
-process. On the next run this also re-parents any codes that were previously
-orphaned. The category shows up on each event row too, as `EVENT_CATEGORY`, so
-the Audit module can filter by it directly.
+never go missing). Then point the `ACTIVITY_CODES` import at `EVENT_ID` with **Name ← `Event
+Name`**, **Parent ← `Parent Code`, matched on code**, and add both imports to
+your process. On the next run this also re-parents any codes that were
+previously orphaned. The category shows up on each event row too, as
+`EVENT_CATEGORY`, so the Audit module can filter by it directly.
+
+> **Why `Event Name`, not `Event Message`?** Anaplan caps list-item names at 60
+> characters and requires them unique, so the tool computes `Event Name` — the
+> message when it fits and is unique, otherwise the code (e.g. `CONN-4`,
+> `USR-81`). Map the list item's **Name** to `Event Name`; keep the full
+> `Event Message` for a description property or the audit feed.
 
 > **On the webinar:** *"Anaplan keeps inventing new event codes. Instead of
 > chasing a master list, the tool reads the code's prefix and files it under
