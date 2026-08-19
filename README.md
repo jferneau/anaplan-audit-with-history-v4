@@ -448,14 +448,20 @@ previously orphaned. The category shows up on each event row too, as
 `EVENT_CATEGORY`, so the Audit module can filter by it directly.
 
 > **Why `Event Name`, not `Event Message`?** Anaplan caps list-item names at 60
-> characters and requires them unique, so the tool computes `Event Name` — the
-> message when it fits and is unique, otherwise the code (e.g. `CONN-4`,
-> `USR-81`). Map the list item's **Name** to `Event Name`.
+> characters and requires them unique, so the tool computes a message-first
+> `Event Name` that degrades only as far as those rules force: the message
+> verbatim when it fits; trimmed to a word boundary when it's too long (`CONN-4`
+> → *"Workspace associated with connection configuration"*); the message plus a
+> bracketed code when two events share a message (`DSM-DAO0071I` → *"Create key
+> pair with key [DSM-DAO0071I]"*); and just the code when the only "message" is
+> a *"pending Anaplan documentation"* placeholder (`AUTHZ-17`, `OAUTH-0`). Map
+> the list item's **Name** to `Event Name`.
 >
 > **Keep the full description:** add a text-formatted list property to
 > `EVENT_ID` (e.g. `Event Description`) and map it **← `Event Message`**,
 > matched on `Event Code`. Properties have no 60-char limit, so every item
-> keeps its complete description even when its name falls back to the code.
+> keeps its complete description even when its name is trimmed or falls back to
+> the code.
 
 > **On the webinar:** *"Anaplan keeps inventing new event codes. Instead of
 > chasing a master list, the tool reads the code's prefix and files it under

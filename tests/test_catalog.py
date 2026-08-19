@@ -52,12 +52,20 @@ class TestShippedCatalogIntegrity:
         assert too_long == [], f"Event Names over {MAX_EVENT_NAME_LEN} chars: {too_long}"
         assert dupes == [], f"duplicate Event Names (would collide on import): {dupes}"
 
-    def test_long_or_duplicate_message_falls_back_to_code(self) -> None:
+    def test_name_is_message_first_degrading_only_as_forced(self) -> None:
+        # The name should read as the Event Message wherever Anaplan's cap and
+        # uniqueness rule allow, dropping to the code only for a placeholder.
         out = add_catalog_columns(_shipped_catalog_df())
         by_code = dict(zip(out["Event Code"], out["Event Name"], strict=True))
-        assert by_code["CONN-4"] == "CONN-4"  # documented message is 62 chars
-        assert by_code["OAUTH-0"] == "OAUTH-0"  # message 69 chars
-        assert by_code["DSM-DAO0501I"] == "DSM-DAO0501I"  # duplicate of DSM-501
+        # Too long (63 chars) -> trimmed to a word boundary, still the message.
+        assert by_code["CONN-4"] == "Workspace associated with connection configuration"
+        # Duplicate of DSM-501's message -> message plus disambiguating code.
+        assert by_code["DSM-DAO0501I"] == "Marked guardpoint pending delete with a [DSM-DAO0501I]"
+        assert by_code["DSM-DAO0071I"] == "Create key pair with key [DSM-DAO0071I]"
+        # A synthetic "pending Anaplan documentation" stub carries no real
+        # information -> the code is clearer than a truncated copy of it.
+        assert by_code["OAUTH-0"] == "OAUTH-0"
+        assert by_code["AUTHZ-17"] == "AUTHZ-17"
 
 
 def _static_catalog() -> pd.DataFrame:
@@ -89,15 +97,16 @@ class TestAugmentActivityCatalog:
         assert by_code["DSM-071"] == "ENCRYPTION ACTIVITY"
 
     def test_produces_valid_event_name_column(self, tmp_path: Path) -> None:
-        # A too-long message falls back to the code; observed codes with no
-        # message are code-named. Every name is within the limit and unique.
+        # A too-long message is trimmed to the cap (still the message); observed
+        # codes with no message are code-named. Every name is within the limit
+        # and unique.
         db = tmp_path / "t.db"
         static = pd.DataFrame(
             {
                 "Event Code": ["USR-8", "CONN-4"],
                 "Event Message": [
                     "User login success",
-                    "Workspace associated with connection configuration successfully",  # 62
+                    "Workspace associated with connection configuration successfully",  # 63
                 ],
                 "Associated Object ID": ["", ""],
                 "Notes": ["", ""],
@@ -109,9 +118,58 @@ class TestAugmentActivityCatalog:
         df = _read_catalog(db)
         names = dict(zip(df["Event Code"], df["Event Name"], strict=True))
         assert names["USR-8"] == "User login success"  # short + unique -> message
-        assert names["CONN-4"] == "CONN-4"  # 62 chars -> code fallback
+        assert names["CONN-4"] == "Workspace associated with connection configuration"  # trimmed
         assert names["WF-112"] == "WF-112"  # observed, no message -> code
         assert (df["Event Name"].str.len() <= MAX_EVENT_NAME_LEN).all()
+
+    def test_live_message_wins_and_enriches_new_codes(self, tmp_path: Path) -> None:
+        # The audit stream is authoritative for event wording. A known code's
+        # message is refreshed from events.message; a brand-new code (a future
+        # Anaplan feature) arrives parented AND carrying its live message, so
+        # it is message-named rather than code-named.
+        db = tmp_path / "t.db"
+        static = pd.DataFrame(
+            {
+                "Event Code": ["AUTHZ-3"],
+                "Event Message": ["Role assigned"],  # catalog wording
+                "Associated Object ID": [""],
+                "Notes": [""],
+            }
+        )
+        events = pd.DataFrame(
+            {
+                "id": ["1", "2", "3"],
+                "eventTypeId": ["AUTHZ-3", "FEAT-1", "FEAT-1"],
+                "message": [
+                    "Role Assigned",  # live casing differs from catalog
+                    "Brand new feature happened",
+                    "Brand new feature happened",
+                ],
+            }
+        )
+        seed_tables(db, {"act_codes": static, "events": events})
+        augment_activity_catalog(db)
+        df = _read_catalog(db)
+        by_code = dict(zip(df["Event Code"], df["Event Message"], strict=True))
+        names = dict(zip(df["Event Code"], df["Event Name"], strict=True))
+        assert by_code["AUTHZ-3"] == "Role Assigned"  # live overrides catalog
+        assert by_code["FEAT-1"] == "Brand new feature happened"  # new code enriched
+        assert names["FEAT-1"] == "Brand new feature happened"  # message-named, not "FEAT-1"
+        assert dict(zip(df["Event Code"], df["Parent"], strict=True))["FEAT-1"] == "UNCATEGORIZED"
+
+    def test_new_code_without_live_message_stays_code_named(self, tmp_path: Path) -> None:
+        # A new code seen with no message still arrives parented; its name
+        # falls back to the code (nothing to name it with).
+        db = tmp_path / "t.db"
+        events = pd.DataFrame(
+            {"id": ["1"], "eventTypeId": ["WF-500"], "message": [""]}
+        )
+        seed_tables(db, {"act_codes": _static_catalog(), "events": events})
+        augment_activity_catalog(db)
+        df = _read_catalog(db)
+        names = dict(zip(df["Event Code"], df["Event Name"], strict=True))
+        assert names["WF-500"] == "WF-500"
+        assert dict(zip(df["Event Code"], df["Parent"], strict=True))["WF-500"] == "WORKFLOW"
 
     def test_unions_observed_codes_not_in_static_catalog(self, tmp_path: Path) -> None:
         # WF-112 / AUTHZ-11 appear in the audit stream but not the shipped
