@@ -161,9 +161,7 @@ class TestAugmentActivityCatalog:
         # A new code seen with no message still arrives parented; its name
         # falls back to the code (nothing to name it with).
         db = tmp_path / "t.db"
-        events = pd.DataFrame(
-            {"id": ["1"], "eventTypeId": ["WF-500"], "message": [""]}
-        )
+        events = pd.DataFrame({"id": ["1"], "eventTypeId": ["WF-500"], "message": [""]})
         seed_tables(db, {"act_codes": _static_catalog(), "events": events})
         augment_activity_catalog(db)
         df = _read_catalog(db)

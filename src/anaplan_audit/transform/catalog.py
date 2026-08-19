@@ -187,9 +187,7 @@ def augment_activity_catalog(db_path: Path) -> None:
                 combined[_MESSAGE_COL] = ""
             combined[_MESSAGE_COL] = [
                 live_msg.get(str(code), existing)
-                for code, existing in zip(
-                    combined[_CODE_COL], combined[_MESSAGE_COL], strict=True
-                )
+                for code, existing in zip(combined[_CODE_COL], combined[_MESSAGE_COL], strict=True)
             ]
 
         combined = add_catalog_columns(combined)
