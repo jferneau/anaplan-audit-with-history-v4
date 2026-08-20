@@ -2,7 +2,7 @@ Event Code,Event Message,Associated Object ID,Notes,Parent Code,Parent,Event Nam
 CONN-1,Connection configuration created successfully,The affected connection ID.,--,CONN,SAML CONNECTION,Connection configuration created successfully
 CONN-2,Connection configuration updated successfully,The affected connection ID.,--,CONN,SAML CONNECTION,Connection configuration updated successfully
 CONN-3,Connection configuration deleted successfully,The affected connection ID.,--,CONN,SAML CONNECTION,Connection configuration deleted successfully
-CONN-4,Workspace associated with connection configuration successfully,The affected connection ID.,Workspace is associated with a connection configuration.,CONN,SAML CONNECTION,CONN-4
+CONN-4,Workspace associated with connection configuration successfully,The affected connection ID.,Workspace is associated with a connection configuration.,CONN,SAML CONNECTION,Workspace associated with connection configuration
 CONN-5,Workspace to connection configuration deleted successfully,The affected connection ID.,Workspace to connection configuration association was deleted.,CONN,SAML CONNECTION,Workspace to connection configuration deleted successfully
 CONN-6,Connection migrated successfully,The affected connection ID.,--,CONN,SAML CONNECTION,Connection migrated successfully
 CONN-7,Connection migration rolled back successfully,The affected connection ID.,--,CONN,SAML CONNECTION,Connection migration rolled back successfully
@@ -13,7 +13,7 @@ AUTHZ-3,Role assigned,The user ID on which the role assignment was performed.,Ro
 AUTHZ-4,Role assignment denied,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role assignment denied
 AUTHZ-6,Role unassigned,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role unassigned
 AUTHZ-7,Role unassignment denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role unassignment denied
-AUTHZ-11,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL,Access control event (message pending Anaplan documentation)
+AUTHZ-11,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL,AUTHZ-11
 AUTHZ-17,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL,AUTHZ-17
 USR-1,User created,The ID of the created user.,(In Anaplan),USR,USER ACTIVITY,User created
 USR-2,User activated,The ID of the activated user.,(In Anaplan),USR,USER ACTIVITY,User activated
@@ -80,7 +80,7 @@ USR-71,Successful import of IP list,Not applicable.,--,USR,USER ACTIVITY,Success
 USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed import of IP list
 USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY,Successful export of IP list
 USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed export of IP list
-USR-75,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,User activity event (message pending Anaplan documentation)
+USR-75,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-75
 USR-81,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-81
 USR-82,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-82
 USR-83,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-83
@@ -181,32 +181,32 @@ DSM-501,Marked guardpoint pending delete with a policy,The user ID associated wi
 DSM-502,Delete a pending guardpoint with a policy,The user ID associated with the action.,Guardpoint event.,DSM,ENCRYPTION ACTIVITY,Delete a pending guardpoint with a policy
 DSM-576,Update Key,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY,Update Key
 DSM-674,Create key attribute,The user ID associated with the action.,BYOK encryption activity.,DSM,ENCRYPTION ACTIVITY,Create key attribute
-DSM-DAO0071I,Create key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-071.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0071I
-DSM-DAO0072I,Delete key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-072.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0072I
-DSM-DAO0229I,Add a guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-229.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0229I
-DSM-DAO0231I,Add a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-231.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0231I
-DSM-DAO0235I,Update a guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-235.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0235I
-DSM-DAO0238I,Delete a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-238.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0238I
-DSM-DAO0239I,Create symmetric key with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-239.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0239I
-DSM-DAO0240I,Delete symmetric key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-240.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0240I
-DSM-DAO0267I,A user logged in,The logged-in user ID.,BYOK DAO prefix variant of DSM-267.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0267I
-DSM-DAO0281I,Delete an online policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-281.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0281I
-DSM-DAO0405I,Assigned roles to a user in the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-405.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0405I
-DSM-DAO0406I,Remove user from domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-406.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0406I
-DSM-DAO0425I,Enable user in a domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-425.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0425I
-DSM-DAO0426I,Switch the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-426.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0426I
-DSM-DAO0501I,Marked guardpoint pending delete with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-501.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0501I
-DSM-DAO0502I,Delete a pending guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-502.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0502I
-DSM-DAO576I,Update Key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-576.,DSM,ENCRYPTION ACTIVITY,DSM-DAO576I
-DSM-DAO0674I,Create key attribute,The user ID associated with the action.,BYOK DAO prefix variant of DSM-674.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0674I
+DSM-DAO0071I,Create key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-071.,DSM,ENCRYPTION ACTIVITY,Create key pair with key [DSM-DAO0071I]
+DSM-DAO0072I,Delete key pair with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-072.,DSM,ENCRYPTION ACTIVITY,Delete key pair with key [DSM-DAO0072I]
+DSM-DAO0229I,Add a guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-229.,DSM,ENCRYPTION ACTIVITY,Add a guardpoint with a policy [DSM-DAO0229I]
+DSM-DAO0231I,Add a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-231.,DSM,ENCRYPTION ACTIVITY,Add a group guardpoint [DSM-DAO0231I]
+DSM-DAO0235I,Update a guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-235.,DSM,ENCRYPTION ACTIVITY,Update a guardpoint [DSM-DAO0235I]
+DSM-DAO0238I,Delete a group guardpoint,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-238.,DSM,ENCRYPTION ACTIVITY,Delete a group guardpoint [DSM-DAO0238I]
+DSM-DAO0239I,Create symmetric key with key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-239.,DSM,ENCRYPTION ACTIVITY,Create symmetric key with key [DSM-DAO0239I]
+DSM-DAO0240I,Delete symmetric key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-240.,DSM,ENCRYPTION ACTIVITY,Delete symmetric key [DSM-DAO0240I]
+DSM-DAO0267I,A user logged in,The logged-in user ID.,BYOK DAO prefix variant of DSM-267.,DSM,ENCRYPTION ACTIVITY,A user logged in [DSM-DAO0267I]
+DSM-DAO0281I,Delete an online policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-281.,DSM,ENCRYPTION ACTIVITY,Delete an online policy [DSM-DAO0281I]
+DSM-DAO0405I,Assigned roles to a user in the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-405.,DSM,ENCRYPTION ACTIVITY,Assigned roles to a user in the domain [DSM-DAO0405I]
+DSM-DAO0406I,Remove user from domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-406.,DSM,ENCRYPTION ACTIVITY,Remove user from domain [DSM-DAO0406I]
+DSM-DAO0425I,Enable user in a domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-425.,DSM,ENCRYPTION ACTIVITY,Enable user in a domain [DSM-DAO0425I]
+DSM-DAO0426I,Switch the domain,The user ID associated with the action.,BYOK DAO prefix variant of DSM-426.,DSM,ENCRYPTION ACTIVITY,Switch the domain [DSM-DAO0426I]
+DSM-DAO0501I,Marked guardpoint pending delete with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-501.,DSM,ENCRYPTION ACTIVITY,Marked guardpoint pending delete with a [DSM-DAO0501I]
+DSM-DAO0502I,Delete a pending guardpoint with a policy,The user ID associated with the action.,Guardpoint DAO prefix variant of DSM-502.,DSM,ENCRYPTION ACTIVITY,Delete a pending guardpoint with a policy [DSM-DAO0502I]
+DSM-DAO576I,Update Key,The user ID associated with the action.,BYOK DAO prefix variant of DSM-576.,DSM,ENCRYPTION ACTIVITY,Update Key [DSM-DAO576I]
+DSM-DAO0674I,Create key attribute,The user ID associated with the action.,BYOK DAO prefix variant of DSM-674.,DSM,ENCRYPTION ACTIVITY,Create key attribute [DSM-DAO0674I]
 DSM-046,Delete host,The user ID associated with the action.,Host management.,DSM,ENCRYPTION ACTIVITY,Delete host
 DSM-048,Update host,The user ID associated with the action.,Host management.,DSM,ENCRYPTION ACTIVITY,Update host
 DSM-521,Add a host group,The user ID associated with the action.,Host group management.,DSM,ENCRYPTION ACTIVITY,Add a host group
 DSM-531,Delete a host group,The user ID associated with the action.,Host group management.,DSM,ENCRYPTION ACTIVITY,Delete a host group
-DSM-DAO0046I,Delete host,The user ID associated with the action.,Host management DAO prefix variant of DSM-046.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0046I
-DSM-DAO0048I,Update host,The user ID associated with the action.,Host management DAO prefix variant of DSM-048.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0048I
-DSM-DAO0521I,Add a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-521.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0521I
-DSM-DAO0531I,Delete a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-531.,DSM,ENCRYPTION ACTIVITY,DSM-DAO0531I
+DSM-DAO0046I,Delete host,The user ID associated with the action.,Host management DAO prefix variant of DSM-046.,DSM,ENCRYPTION ACTIVITY,Delete host [DSM-DAO0046I]
+DSM-DAO0048I,Update host,The user ID associated with the action.,Host management DAO prefix variant of DSM-048.,DSM,ENCRYPTION ACTIVITY,Update host [DSM-DAO0048I]
+DSM-DAO0521I,Add a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-521.,DSM,ENCRYPTION ACTIVITY,Add a host group [DSM-DAO0521I]
+DSM-DAO0531I,Delete a host group,The user ID associated with the action.,Host group DAO prefix variant of DSM-531.,DSM,ENCRYPTION ACTIVITY,Delete a host group [DSM-DAO0531I]
 WF-100,Task created,The event code.,Workflow task event.,WF,WORKFLOW,Task created
 WF-101,Task started,The event code.,Workflow task event.,WF,WORKFLOW,Task started
 WF-102,Task completed,The event code.,Workflow task event.,WF,WORKFLOW,Task completed
@@ -218,7 +218,7 @@ WF-107,Task rejected,The event code.,"Workflow task event. Previously documented
 WF-108,Task sent back,The event code.,Workflow task event.,WF,WORKFLOW,Task sent back
 WF-109,Task transferred,The event code.,Workflow task event.,WF,WORKFLOW,Task transferred
 WF-110,Task sent reminder,The event code.,Workflow task event.,WF,WORKFLOW,Task sent reminder
-WF-111,Workflow task event (message pending Anaplan documentation),The event code.,Code present in API responses; message not yet published by Anaplan.,WF,WORKFLOW,Workflow task event (message pending Anaplan documentation)
+WF-111,Workflow task event (message pending Anaplan documentation),The event code.,Code present in API responses; message not yet published by Anaplan.,WF,WORKFLOW,WF-111
 WF-112,Workflow task event (message pending Anaplan documentation),The event code.,Code present in API responses; message not yet published by Anaplan.,WF,WORKFLOW,WF-112
 WF-1000,Workflow template created,The event code.,Workflow template event.,WF,WORKFLOW,Workflow template created
 WF-1001,Workflow template published,The event code.,Workflow template event.,WF,WORKFLOW,Workflow template published
