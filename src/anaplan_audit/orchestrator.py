@@ -154,6 +154,7 @@ def run(
     *,
     dry_run: bool = False,
     limit: int | None = None,
+    full: bool = False,
 ) -> int:
     """Execute the pipeline according to the enabled feature flags.
 
@@ -177,6 +178,8 @@ def run(
         settings: Validated application settings.
         log: A bound structlog logger.
         dry_run: When *True*, skip all Anaplan upload steps.
+        full: When *True*, bypass the incremental delta and reload every
+            audit fact.
 
     Returns:
         ``0`` on success.
@@ -188,7 +191,7 @@ def run(
     db_path = Path(settings.database)
 
     with _RunLock(db_path):
-        return _run_locked(settings, log, db_path=db_path, dry_run=dry_run, limit=limit)
+        return _run_locked(settings, log, db_path=db_path, dry_run=dry_run, limit=limit, full=full)
 
 
 def _run_locked(
@@ -198,6 +201,7 @@ def _run_locked(
     db_path: Path,
     dry_run: bool,
     limit: int | None = None,
+    full: bool = False,
 ) -> int:
     """Run the pipeline with the database lock already held."""
     # Step 1: Authenticate
@@ -323,7 +327,7 @@ def _run_locked(
                 else:
                     log.info("pipeline_step_start", step="upload")
                     t0 = time.monotonic()
-                    upload_audit_data(client, result_df, settings, db_path=db_path)
+                    upload_audit_data(client, result_df, settings, db_path=db_path, full=full)
                     log.info("pipeline_step_done", step="upload", duration_ms=_elapsed(t0))
 
             # Optional audit-event retention (0 = keep forever).

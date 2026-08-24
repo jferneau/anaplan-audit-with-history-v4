@@ -125,6 +125,20 @@ class TargetModelObjects(BaseModel):
     The v1 process was ``"Update Anaplan Audit Environment"``.
     """
 
+    # --- Incremental audit-fact load -----------------------------------
+    # Audit events are immutable and keyed by ``AUDIT_ID``, so a fact
+    # already in the model never needs re-sending. When enabled, the tool
+    # uploads only rows whose key is absent from ``auditKeyListName`` in the
+    # model — the delta — instead of the full accumulated history. Requires
+    # the reporting model's AUDIT_LOG import to be additive (no clear step
+    # before it). Falls back to a full load if the key column/list can't be
+    # resolved, so it degrades safely.
+    incrementalLoad: bool = True
+    auditKeyColumn: str = "AUDIT_ID"
+    """Column in the transformed audit frame that uniquely keys each fact."""
+    auditKeyListName: str = "AUDIT_ID"
+    """Model list whose members are the audit-fact keys already loaded."""
+
     # Per-table CSV file names in the target reporting model. Defaults
     # match what v1 shipped, so most users only need to set ``processName``.
     auditEventsFileName: str = "AUDIT_LOG.csv"

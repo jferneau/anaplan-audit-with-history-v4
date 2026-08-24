@@ -105,9 +105,11 @@ def get_list_item_identifiers(
     Returning the union of the two lets the caller skip anything that
     would collide on either side.
 
-    Uses ``?includeAll=true`` so a single response covers every item;
-    if Anaplan returns a paged response the first page is used and a
-    warning is emitted so the caller knows coverage was incomplete.
+    Uses ``?includeAll=true`` and follows Anaplan's paging cursor
+    (``meta.paging.nextUrl``) to accumulate every page, so the returned
+    set is complete even for large lists — audit-fact keys (``AUDIT_ID``)
+    can number in the tens of thousands, and incremental loads diff the
+    upload against this set.
 
     Args:
         client: An authenticated :class:`APIClient`.
@@ -120,30 +122,31 @@ def get_list_item_identifiers(
         A ``set`` containing every non-empty ``code`` and ``name`` from
         the list.
     """
-    url = (
+    url: str | None = (
         f"{integration_uri}/workspaces/{workspace_id}/models/{model_id}"
         f"/lists/{list_id}/items?includeAll=true"
     )
-    resp = client.get(url)
-    data = resp.json()
-    items = data.get("listItems", data.get("items", []))
     identifiers: set[str] = set()
-    for item in items:
-        for key in ("code", "name"):
-            v = item.get(key)
-            if v not in (None, ""):
-                identifiers.add(str(v))
-    next_url = data.get("meta", {}).get("paging", {}).get("nextUrl")
-    if next_url:
-        logger.warning(
-            "list_items_paged_response",
-            list_id=list_id,
-            note="Anaplan returned a paged response; only page 1 was consumed.",
-        )
+    seen_urls: set[str] = set()
+    pages = 0
+    # Follow the paging cursor so the set is COMPLETE — a partial set would
+    # make already-loaded facts look new and get re-uploaded. The seen-URL
+    # guard breaks a cyclic cursor rather than looping forever.
+    while url and url not in seen_urls:
+        seen_urls.add(url)
+        data = client.get(url).json()
+        for item in data.get("listItems", data.get("items", [])):
+            for key in ("code", "name"):
+                v = item.get(key)
+                if v not in (None, ""):
+                    identifiers.add(str(v))
+        pages += 1
+        url = data.get("meta", {}).get("paging", {}).get("nextUrl")
     logger.debug(
         "list_item_identifiers_fetched",
         list_id=list_id,
         identifier_count=len(identifiers),
+        pages=pages,
     )
     return identifiers
 

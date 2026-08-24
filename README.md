@@ -490,6 +490,7 @@ list and the event feed.
 
 - `--config PATH` — settings file (default `./settings.json`)
 - `--dry-run` — extract + transform, skip upload
+- `--full` — reload every audit fact instead of just the delta (see below)
 - `--verbose` — detailed console output
 - `--since EPOCH` / `--limit N` — bounded / sample runs
 - `--log-dir PATH` / `--no-log-file` — control the per-run log file
@@ -504,6 +505,18 @@ list and the event feed.
   keeps every event it has ever seen. Audit events are kept indefinitely by
   default; Model History defaults to 2 years. Both are configurable, and a
   backup is taken before any purge.
+- **Incremental load.** Audit facts are immutable and keyed by `AUDIT_ID`, so
+  each run uploads only the **delta** — rows whose key isn't already in the
+  model's `AUDIT_ID` list — instead of re-pushing the full history. The
+  `Audit Records Loaded` figure in the Refresh Log is therefore the count of
+  *new* records that run, and back-to-back runs load ~0. Requires the
+  `AUDIT_LOG` import to be **additive** (no clear step before it in the
+  process); the tool falls back to a full load if it can't resolve the key
+  list, so it degrades safely. Use `run --full` to force a complete reload
+  after rebuilding the model or running an `additionalAttributes` backfill.
+  Toggle off with `incrementalLoad: false`. (Metadata tables — users, models,
+  etc. — always load in full; they're current-state snapshots, not append-only
+  facts.)
 - **Keeps up with Anaplan.** New event types and attributes flow through
   automatically; updating the bundled activity-code list as Anaplan
   publishes new codes is the only routine maintenance.
