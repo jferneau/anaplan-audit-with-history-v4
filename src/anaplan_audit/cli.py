@@ -58,6 +58,14 @@ def run(
         bool,
         typer.Option("--dry-run", help="Extract + transform, skip upload"),
     ] = False,
+    full: Annotated[
+        bool,
+        typer.Option(
+            "--full",
+            help="Reload every audit fact instead of just the delta "
+            "(use after a model rebuild or an additionalAttributes backfill)",
+        ),
+    ] = False,
     since: Annotated[
         int | None,
         typer.Option("--since", help="Override lastRun epoch for this execution"),
@@ -96,7 +104,7 @@ def run(
 
         from anaplan_audit.orchestrator import run as run_pipeline
 
-        exit_code = run_pipeline(settings, log, dry_run=dry_run, limit=limit)
+        exit_code = run_pipeline(settings, log, dry_run=dry_run, limit=limit, full=full)
         raise typer.Exit(code=exit_code)
     except typer.Exit:
         raise

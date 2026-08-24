@@ -256,12 +256,77 @@ def _prepare_metadata_csv(table_name: str, table_df: pd.DataFrame) -> pd.DataFra
     return df
 
 
+def _audit_delta(
+    client: APIClient,
+    settings: Settings,
+    df: pd.DataFrame,
+    log: structlog.stdlib.BoundLogger,
+    *,
+    full: bool,
+) -> pd.DataFrame:
+    """Return only the audit rows not already loaded in the model (the delta).
+
+    Audit facts are immutable and keyed by ``auditKeyColumn`` (``AUDIT_ID``),
+    so a row whose key is already a member of ``auditKeyListName`` never needs
+    re-sending. Diffing the frame against that list turns a full-history upload
+    into a delta upload.
+
+    Degrades to the full frame — never fewer rows — whenever the delta can't be
+    computed safely: ``full=True``, the feature is off, the key column is
+    missing, the list can't be resolved, or the identifier fetch fails. A full
+    load is the pre-existing, idempotent behaviour, so the fallback is safe.
+    """
+    objects = settings.targetAnaplanModel.objects
+    if full or not objects.incrementalLoad:
+        log.info(
+            "audit_load_full",
+            reason="full_flag" if full else "incremental_disabled",
+            row_count=len(df),
+        )
+        return df
+
+    key_col = objects.auditKeyColumn
+    if key_col not in df.columns:
+        log.warning("audit_delta_key_missing", key_column=key_col, note="loading full set")
+        return df
+
+    target = settings.targetAnaplanModel
+    integration_uri = settings.uris.integrationUri
+    try:
+        lists = list_lists(client, integration_uri, target.workspaceId, target.modelId)
+        list_id = next((li.id for li in lists if li.name == objects.auditKeyListName), "")
+        if not list_id:
+            log.warning(
+                "audit_delta_list_not_found",
+                list_name=objects.auditKeyListName,
+                note="loading full set",
+            )
+            return df
+        existing = get_list_item_identifiers(
+            client, integration_uri, target.workspaceId, target.modelId, list_id
+        )
+    except Exception as exc:
+        log.warning("audit_delta_fetch_failed", error=str(exc), note="loading full set")
+        return df
+
+    delta = df[~df[key_col].astype(str).isin(existing)]
+    log.info(
+        "audit_load_incremental",
+        observed=len(df),
+        already_loaded=len(df) - len(delta),
+        delta=len(delta),
+        existing_in_model=len(existing),
+    )
+    return delta
+
+
 def upload_audit_data(
     client: APIClient,
     df: pd.DataFrame,
     settings: Settings,
     *,
     db_path: Path | None = None,
+    full: bool = False,
 ) -> None:
     """Upload the audit run's data to the target Anaplan Reporting Model.
 
@@ -283,6 +348,9 @@ def upload_audit_data(
         settings: Application settings.
         db_path: Path to the DuckDB database. Required for multi-file mode
             because the metadata CSVs are read from the loaded tables.
+        full: Force a complete reload — bypass the incremental delta and
+            upload every audit row. Use after a model rebuild or an
+            ``additionalAttributes`` backfill.
     """
     target = settings.targetAnaplanModel
     integration_uri = settings.uris.integrationUri
@@ -297,6 +365,11 @@ def upload_audit_data(
         for i in list_imports(client, integration_uri, target.workspaceId, target.modelId)
     }
 
+    # Upload only facts not already in the model. The full frame still drives
+    # the list sync below (so the AUDIT_ID list reflects every observed key),
+    # but the AUDIT_LOG file — the expensive part — carries just the delta.
+    upload_df = _audit_delta(client, settings, df, log, full=full)
+
     if target.objects.processName:
         if db_path is None:
             raise ConfigError(
@@ -305,7 +378,7 @@ def upload_audit_data(
             )
         _upload_via_process(
             client,
-            df,
+            upload_df,
             settings,
             log,
             file_map=file_map,
@@ -313,7 +386,9 @@ def upload_audit_data(
             db_path=db_path,
         )
     else:
-        _upload_single_file(client, df, settings, log, file_map=file_map, import_map=import_map)
+        _upload_single_file(
+            client, upload_df, settings, log, file_map=file_map, import_map=import_map
+        )
 
     # Capture the run timestamp AFTER a successful upload path.
     new_last_run = int(time.time())
@@ -321,7 +396,10 @@ def upload_audit_data(
     _upload_last_run_to_anaplan(
         client, settings, new_last_run, log, file_map=file_map, import_map=import_map
     )
-    _write_refresh_log_transactional(client, settings, new_last_run, row_count=len(df), log=log)
+    # Refresh log records what was actually loaded this run — the delta.
+    _write_refresh_log_transactional(
+        client, settings, new_last_run, row_count=len(upload_df), log=log
+    )
     _sync_lists_transactional(client, settings, df, log=log)
     _update_last_run(settings, new_last_run)
 
