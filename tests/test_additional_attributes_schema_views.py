@@ -187,23 +187,59 @@ class TestStagingViews:
         assert pages == [("pg-1", "Overview", "app-1"), ("pg-2", "Detail", "app-1")]
         assert "parent_code" not in app_cols  # apps stay flat
 
-    def test_view_filters_null_and_empty_codes_and_names(self, tmp_path: Path) -> None:
-        # Spec Acceptance criterion #6: no orphan rows.
+    def test_app_view_keeps_every_app_id_naming_unnamed_by_id(self, tmp_path: Path) -> None:
+        # The app list must cover every app_id a page could parent on. A
+        # null/empty code (nothing to key on) is dropped, but a missing NAME
+        # falls back to the id so the app still appears — otherwise pages under
+        # it would orphan.
         db_path = tmp_path / "test.db"
         df = pd.DataFrame(
             [
                 {"id": "1", "app_id": "keep", "app_name": "Keep"},
-                {"id": "2", "app_id": None, "app_name": "Orphan"},
-                {"id": "3", "app_id": "orphan", "app_name": None},
-                {"id": "4", "app_id": "", "app_name": "Empty"},
-                {"id": "5", "app_id": "empty-name", "app_name": ""},
+                {"id": "2", "app_id": None, "app_name": "Dropped"},  # null code -> gone
+                {"id": "3", "app_id": "unnamed", "app_name": None},  # -> named by id
+                {"id": "4", "app_id": "", "app_name": "Dropped"},  # empty code -> gone
+                {"id": "5", "app_id": "empty-name", "app_name": ""},  # -> named by id
+                # A later event finally names the same app: the name wins.
+                {"id": "6", "app_id": "unnamed", "app_name": "Named Later"},
             ]
         )
         load_to_duckdb(db_path, {"events": df})
         ensure_staging_views(db_path)
         with closing(duckdb.connect(str(db_path))) as conn:
-            rows = conn.execute("SELECT code, name FROM v_ux_app").fetchall()
-        assert rows == [("keep", "Keep")]
+            rows = conn.execute("SELECT code, name FROM v_ux_app ORDER BY code").fetchall()
+        assert rows == [
+            ("empty-name", "empty-name"),
+            ("keep", "Keep"),
+            ("unnamed", "Named Later"),
+        ]
+
+    def test_page_parent_app_always_present(self, tmp_path: Path) -> None:
+        # The orphan fix: a page whose app_id is never named still finds its
+        # parent in v_ux_app (named by id), so no page is left orphaned.
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [
+                # Page under an app that no event ever names.
+                {
+                    "id": "1",
+                    "app_id": "app-unnamed",
+                    "app_name": None,
+                    "page_id": "pg-1",
+                    "page_name": "Overview",
+                },
+            ]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            page_parents = {
+                r[0] for r in conn.execute("SELECT parent_code FROM v_ux_page").fetchall()
+            }
+            app_codes = {r[0] for r in conn.execute("SELECT code FROM v_ux_app").fetchall()}
+        # Every parent a page references exists in the app list.
+        assert page_parents <= app_codes
+        assert "app-unnamed" in app_codes
 
     def test_category_gating_creates_only_requested_views(self, tmp_path: Path) -> None:
         db_path = tmp_path / "test.db"

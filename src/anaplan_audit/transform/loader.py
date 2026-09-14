@@ -540,6 +540,25 @@ def ensure_staging_views(
                 conn.execute(f"DROP VIEW IF EXISTS {view_name}")
                 continue
 
+            if view_key == "uxAppPage_app":
+                # The page view parents every page on its app_id, but a page
+                # can carry an app_id that no event ever names (appName null on
+                # those rows). Building the app list only from NAMED app events
+                # would then leave such pages orphaned under a missing parent.
+                # So emit EVERY app_id in the stream — named from the best
+                # app_name we ever captured, falling back to the id itself —
+                # so a page's parent app always exists. Only a null/empty code
+                # (nothing to key on) is dropped.
+                conn.execute(
+                    f"CREATE OR REPLACE VIEW {view_name} AS "
+                    f'SELECT "{id_col}" AS code, '
+                    f'COALESCE(MAX(NULLIF("{name_col}", \'\')), "{id_col}") AS name '
+                    f"FROM {_EVENTS_TABLE} "
+                    f'WHERE "{id_col}" IS NOT NULL AND "{id_col}" != \'\' '
+                    f'GROUP BY "{id_col}"'
+                )
+                continue
+
             # Hierarchical lists (only UX pages today) emit an extra
             # parent_code column and drop rows with no parent id.
             parent_select = f', "{parent_col}" AS parent_code' if parent_col else ""
