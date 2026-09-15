@@ -72,6 +72,17 @@ latest-run-log.txt
 *.md
 !README.md
 
-# Stale v3 documentation set — pending a dedicated v4 rewrite. The README is
-# the single source of truth for v4 until these are refreshed.
-docs/
+# The docs/ directory is ignored by default (drafts, stale v3 changelogs,
+# community/ scratch), but the four v4 customer docs are published — both the
+# Markdown sources and the generated .docx. Add a pair here when a doc joins
+# the set; regenerate the .docx with `make docs`.
+docs/*
+docs/community/
+!docs/technical-reference.md
+!docs/technical-reference.docx
+!docs/operations-runbook.md
+!docs/operations-runbook.docx
+!docs/anaplan-model-setup-guide.md
+!docs/anaplan-model-setup-guide.docx
+!docs/developer-guide.md
+!docs/developer-guide.docx
