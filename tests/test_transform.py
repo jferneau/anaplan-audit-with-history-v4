@@ -289,13 +289,36 @@ class TestDuckDBLoader:
 
         for optional in (
             "additionalAttributes.appId",
+            "additionalAttributes.appName",
             "additionalAttributes.pageId",
+            "additionalAttributes.pageName",
             "additionalAttributes.pipelineId",
             "additionalAttributes.taskId",
             "additionalAttributes.workflowTemplateId",
             "additionalAttributes.commentId",
         ):
             assert optional in cols, f"{optional} was not pre-declared"
+
+    def test_every_referenced_additional_attribute_is_predeclared(self) -> None:
+        """Every ``additionalAttributes.*`` column audit_query.sql references must
+        be pre-declared. On a tenant that never emitted one (the ``appName`` gap),
+        the flattened column is absent and the SELECT fails with "no such column",
+        crashing the whole transform. This static check guards that class of bug
+        without needing a live batch that happens to omit the column.
+        """
+        import importlib.resources
+        import re
+
+        from anaplan_audit.transform.loader import _KNOWN_OPTIONAL_EVENT_COLUMNS
+
+        sql = (
+            importlib.resources.files("anaplan_audit.transform.queries")
+            .joinpath("audit_query.sql")
+            .read_text()
+        )
+        referenced = set(re.findall(r'e\."(additionalAttributes\.[^"]+)"', sql))
+        missing = sorted(referenced - set(_KNOWN_OPTIONAL_EVENT_COLUMNS))
+        assert not missing, f"audit_query.sql references non-pre-declared columns: {missing}"
 
     # (v3 had a WAL-journal-mode assertion here — a SQLite-only concept with
     # no DuckDB analog; DuckDB manages its own WAL unconditionally.)

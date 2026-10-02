@@ -89,6 +89,7 @@ _KNOWN_OPTIONAL_EVENT_COLUMNS: list[str] = [
     "additionalAttributes.active",
     # Newer event categories: UX pages, ADO, Workflow templates, Comments.
     "additionalAttributes.appId",
+    "additionalAttributes.appName",
     "additionalAttributes.pageId",
     "additionalAttributes.pageName",
     "additionalAttributes.pipelineId",
