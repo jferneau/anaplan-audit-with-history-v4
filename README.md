@@ -409,6 +409,19 @@ fixed set of columns:
   leave it off otherwise. UX pages nest under their app (a page carries its
   `parent_code`), so if you import both, run the app import before the page
   import.
+
+> **UX apps/pages are *observed activity*, not an app catalog.** Anaplan
+> exposes no API to enumerate apps/pages, so these lists are built from the
+> audit stream. That means they are **tenant-wide** (every app/page anyone
+> opened — they can't be filtered to selected models, because a UX page
+> isn't tied to one model), contain **only pages that were actually
+> visited** (not an app's full page set), and name each item from the
+> observed title. Page names aren't unique across apps, so the tool makes
+> them unique by appending the parent app's name
+> (`Model History Analysis (Customer Copy)`). Treat these lists as "who
+> opened what, when." **Clear them on import** (`UX_APP`/`UX_PAGE` import →
+> clear the list first) so pages that are no longer visited don't
+> accumulate as orphans.
 - **`retainRawJson`** — keep (or drop) the full JSON archive column. Keeping
   it is the forward-compatibility hedge; dropping it trims width if you're
   certain you'll never need attributes beyond the named columns.

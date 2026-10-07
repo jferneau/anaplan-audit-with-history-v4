@@ -498,6 +498,67 @@ _CATEGORY_TO_VIEWS: dict[str, list[str]] = {
     "targetUser": ["targetUser"],
 }
 
+# UX apps/pages come from the audit stream (no Anaplan apps/pages API exists),
+# so these two views are the whole catalog of *observed* UX activity. They need
+# custom SQL the generic template can't express: a complete app list (so no
+# page orphans) and unique, readable names (Anaplan list names must be unique,
+# and page names collide across apps). A collision gets a short id tag; the
+# 49-char trim keeps the result within Anaplan's 60-char list-name limit.
+_V_UX_APP_SQL = """
+CREATE OR REPLACE VIEW {view} AS
+WITH apps AS (
+    SELECT app_id AS code,
+           COALESCE(MAX(NULLIF(app_name, '')), app_id) AS base_name
+    FROM events
+    WHERE app_id IS NOT NULL AND app_id <> ''
+    GROUP BY app_id
+)
+SELECT code,
+       CASE WHEN count(*) OVER (PARTITION BY base_name) > 1
+            THEN substr(base_name, 1, 49) || ' [' || substr(code, 1, 8) || ']'
+            ELSE base_name END AS name
+FROM apps
+"""
+
+_V_UX_PAGE_SQL = """
+CREATE OR REPLACE VIEW {view} AS
+WITH pages AS (
+    SELECT page_id AS code,
+           COALESCE(MAX(NULLIF(page_name, '')), page_id) AS base_name,
+           MAX(app_id) AS parent_code
+    FROM events
+    WHERE page_id IS NOT NULL AND page_id <> ''
+      AND app_id IS NOT NULL AND app_id <> ''
+    GROUP BY page_id
+),
+app_names AS (
+    SELECT app_id,
+           COALESCE(MAX(NULLIF(app_name, '')), app_id) AS app_nm
+    FROM events
+    WHERE app_id IS NOT NULL AND app_id <> ''
+    GROUP BY app_id
+),
+dups AS (
+    SELECT base_name FROM pages GROUP BY base_name HAVING count(*) > 1
+),
+cand AS (
+    SELECT p.code,
+           p.parent_code,
+           CASE WHEN d.base_name IS NOT NULL
+                THEN substr(p.base_name || ' (' || COALESCE(a.app_nm, p.parent_code) || ')', 1, 60)
+                ELSE p.base_name END AS nm
+    FROM pages p
+    LEFT JOIN dups d ON p.base_name = d.base_name
+    LEFT JOIN app_names a ON p.parent_code = a.app_id
+)
+SELECT code,
+       CASE WHEN count(*) OVER (PARTITION BY nm) > 1
+            THEN substr(nm, 1, 49) || ' [' || substr(code, 1, 8) || ']'
+            ELSE nm END AS name,
+       parent_code
+FROM cand
+"""
+
 
 def ensure_staging_views(
     db_path: Path,
@@ -542,22 +603,24 @@ def ensure_staging_views(
                 continue
 
             if view_key == "uxAppPage_app":
-                # The page view parents every page on its app_id, but a page
-                # can carry an app_id that no event ever names (appName null on
-                # those rows). Building the app list only from NAMED app events
-                # would then leave such pages orphaned under a missing parent.
-                # So emit EVERY app_id in the stream — named from the best
-                # app_name we ever captured, falling back to the id itself —
-                # so a page's parent app always exists. Only a null/empty code
-                # (nothing to key on) is dropped.
-                conn.execute(
-                    f"CREATE OR REPLACE VIEW {view_name} AS "
-                    f'SELECT "{id_col}" AS code, '
-                    f'COALESCE(MAX(NULLIF("{name_col}", \'\')), "{id_col}") AS name '
-                    f"FROM {_EVENTS_TABLE} "
-                    f'WHERE "{id_col}" IS NOT NULL AND "{id_col}" != \'\' '
-                    f'GROUP BY "{id_col}"'
-                )
+                # Emit EVERY app_id in the stream so a page's parent app always
+                # exists (a page can carry an app_id no event ever names). Each
+                # app is named from the best app_name we captured, falling back
+                # to the id. Anaplan list names must be unique, so if two apps
+                # share a name, a short id tag disambiguates them.
+                conn.execute(_V_UX_APP_SQL.format(view=view_name))
+                continue
+
+            if view_key == "uxAppPage_page":
+                # Pages are keyed by page_id (unique) but named by page_name,
+                # which is NOT unique across apps — two apps can each have a
+                # "Model History Analysis" page. Anaplan then appends its own
+                # "(Duplicate N)", which reads as the wrong page under the wrong
+                # app. Instead, disambiguate a shared page name with its parent
+                # app's name ("... (Audit Report Customer Copy)"), and fall back
+                # to a short id tag if that still collides. Every page still
+                # parents on its app_id (present in v_ux_app above).
+                conn.execute(_V_UX_PAGE_SQL.format(view=view_name))
                 continue
 
             # Hierarchical lists (only UX pages today) emit an extra
