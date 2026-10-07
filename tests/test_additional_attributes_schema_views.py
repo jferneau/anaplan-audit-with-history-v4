@@ -241,6 +241,64 @@ class TestStagingViews:
         assert page_parents <= app_codes
         assert "app-unnamed" in app_codes
 
+    def test_duplicate_page_name_disambiguated_by_parent_app(self, tmp_path: Path) -> None:
+        # Two different pages share a name but live in different apps (the
+        # "Model History Analysis (Duplicate 1)" case). The name must be made
+        # unique by appending the parent app's name, so each reads correctly
+        # under its own app instead of Anaplan auto-suffixing one.
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [
+                {
+                    "id": "1",
+                    "app_id": "appA",
+                    "app_name": "Audit Report",
+                    "page_id": "pgA",
+                    "page_name": "Model History Analysis",
+                },
+                {
+                    "id": "2",
+                    "app_id": "appB",
+                    "app_name": "Customer Copy",
+                    "page_id": "pgB",
+                    "page_name": "Model History Analysis",
+                },
+                # A non-colliding page keeps its bare name.
+                {
+                    "id": "3",
+                    "app_id": "appA",
+                    "app_name": "Audit Report",
+                    "page_id": "pgC",
+                    "page_name": "Overview",
+                },
+            ]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            names = dict(conn.execute("SELECT code, name FROM v_ux_page").fetchall())
+        assert names["pgA"] == "Model History Analysis (Audit Report)"
+        assert names["pgB"] == "Model History Analysis (Customer Copy)"
+        assert names["pgC"] == "Overview"  # unique -> untouched
+        assert len(set(names.values())) == len(names)  # all names unique
+
+    def test_duplicate_app_name_disambiguated_by_id(self, tmp_path: Path) -> None:
+        # Two distinct apps that happen to share a name must still produce
+        # unique list-item names (Anaplan rejects duplicate names).
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [
+                {"id": "1", "app_id": "app-1111aaaa", "app_name": "Sales App"},
+                {"id": "2", "app_id": "app-2222bbbb", "app_name": "Sales App"},
+            ]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            names = [r[0] for r in conn.execute("SELECT name FROM v_ux_app").fetchall()]
+        assert len(set(names)) == 2  # unique despite identical app_name
+        assert all(n.startswith("Sales App") for n in names)
+
     def test_category_gating_creates_only_requested_views(self, tmp_path: Path) -> None:
         db_path = tmp_path / "test.db"
         load_to_duckdb(db_path, {"events": _sample_events_df()})

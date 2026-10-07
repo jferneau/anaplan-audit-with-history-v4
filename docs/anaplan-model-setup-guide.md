@@ -149,7 +149,14 @@ top-level dashboard filter. The `UX_*` / `ADO_*` / `WORKFLOW_*` /
 
 - **UX apps/pages.** If you import them, map `parent_code` on the
   `UX_PAGE` import (pages nest under apps) and run the **UX_APP import
-  before UX_PAGE**. The tool guarantees every page's parent app exists.
+  before UX_PAGE**. The tool guarantees every page's parent app exists, and
+  makes page names unique by appending the parent app name when two apps
+  share a page title. **Important:** these are *observed activity* lists
+  built from the audit stream — tenant-wide (not filterable to selected
+  models; Anaplan has no apps/pages API and a page isn't tied to one model)
+  and containing only pages that were actually visited. Set the `UX_APP` /
+  `UX_PAGE` imports to **clear the list first** so no-longer-visited pages
+  don't accumulate as orphans. Think of them as "who opened what, when."
 - **Refresh log.** Set `batchIdListName`, `refreshLogModuleName`, and the
   timestamp/records line-item names to record when each run ran and how
   many rows it loaded (the delta count) — no file/import needed.
