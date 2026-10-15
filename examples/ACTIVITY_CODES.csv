@@ -71,10 +71,10 @@ USR-56,User password change failure,The associated user ID.,--,USR,USER ACTIVITY
 USR-57,User granted Exception access,The associated user ID.,--,USR,USER ACTIVITY,User granted Exception access
 USR-58,Revocation of Exception access.,The associated user ID.,--,USR,USER ACTIVITY,Revocation of Exception access.
 USR-59,Resend activation email,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,Resend activation email
-USR-60,UX worksheet page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX worksheet page published
+USR-60,User activity event (message pending Anaplan documentation),"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,USR-60
 USR-61,User Model Activity Events,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,User Model Activity Events
-USR-62,UX board My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX board My page published
-USR-63,UX worksheet My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX worksheet My page published
+USR-62,User activity event (message pending Anaplan documentation),"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,USR-62
+USR-63,User activity event (message pending Anaplan documentation),"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,USR-63
 USR-65,User submitted question,UX App GUID.,--,USR,USER ACTIVITY,User submitted question
 USR-71,Successful import of IP list,Not applicable.,--,USR,USER ACTIVITY,Successful import of IP list
 USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed import of IP list
@@ -82,7 +82,7 @@ USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY,Success
 USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed export of IP list
 USR-75,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-75
 USR-81,UX board page published,N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,UX board page published
-USR-82,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-82
+USR-82,UX worksheet page published,"UX App GUID, UX Page GUID, and Page name",Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,UX worksheet page published
 USR-83,UX report page published,N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,UX report page published
 COMMENT-01,Comment added,N/A,Comment events have no associated object ID.,COMMENT,COMMENT,Comment added
 COMMENT-02,Comment deleted,N/A,Comment events have no associated object ID.,COMMENT,COMMENT,Comment deleted
@@ -230,3 +230,5 @@ WF-1006,Workflow template execution initiated by end user,The event code.,Workfl
 OAUTH-0,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH,OAUTH-0
 OAUTH-1,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH,OAUTH-1
 OAUTH-2,OAuth authentication event (description pending Anaplan documentation),N/A,Code present in API responses but message not yet published by Anaplan.,OAUTH,OAUTH,OAUTH-2
+USR-84,UX board My page published,"UX App GUID, UX Page GUID, and Page name",,USR,USER ACTIVITY,UX board My page published
+USR-85,UX worksheet My page published,"UX App GUID, UX Page GUID, and Page name",,USR,USER ACTIVITY,UX worksheet My page published

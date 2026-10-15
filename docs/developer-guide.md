@@ -148,15 +148,30 @@ the live stream (parented by prefix via `taxonomy.py`) and prefers the
 live `events.message`, so new codes and updated wording flow through
 without an edit.
 
-You only edit the CSV to **pre-load codes not yet in your stream**:
+To **refresh the seed from Anaplan's authoritative docs** (correct wording,
+capture newly-published codes), run the harvester instead of hand-editing:
 
-1. Reconcile against Anaplan's published event-code tables; add rows for
-   new codes with their messages. Keep legacy codes (e.g. `PIQ-*`
-   superseded by `FRCST-*`) so historical events still resolve.
-2. `uv run pytest tests/test_catalog.py tests/test_taxonomy.py` to
-   confirm the catalog still parses and every `Event Name` stays ≤ 60
-   chars and unique.
-3. Bump the version, tag, release.
+```bash
+python scripts/harvest_activity_codes.py            # fetch Anapedia + dry-run report
+python scripts/harvest_activity_codes.py --write     # apply to activity_events.csv
+```
+
+It parses Anaplan's eight "Tracked … events" Anapedia pages (stdlib only)
+and merges on a **live-authoritative** policy: an existing non-placeholder
+message is kept (the pipeline prefers the live `events.message` at runtime,
+so the seed never overwrites a live/curated value with documentation-cased
+wording); `pending Anaplan documentation` placeholders are filled from
+Anapedia; newly-documented codes are appended (parented by prefix); and a
+code whose message is verbatim *another* code's documented message — a
+shifted mis-assignment — is reset to the placeholder. After running it,
+regenerate `examples/ACTIVITY_CODES.csv` and run
+`uv run pytest tests/test_catalog.py tests/test_taxonomy.py tests/test_harvest_activity_codes.py`
+to confirm names stay unique and ≤ 60 chars. Keep legacy codes (e.g. `PIQ-*`
+superseded by `FRCST-*`) so historical events still resolve. Then bump the
+version, tag, release.
+
+For a one-off addition you can still edit the CSV by hand — add the code and
+message, keeping existing rows untouched.
 
 ## 5.1 A new event *family* (new prefix)
 
