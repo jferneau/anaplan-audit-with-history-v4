@@ -154,9 +154,16 @@ top-level dashboard filter. The `UX_*` / `ADO_*` / `WORKFLOW_*` /
   share a page title. **Important:** these are *observed activity* lists
   built from the audit stream — tenant-wide (not filterable to selected
   models; Anaplan has no apps/pages API and a page isn't tied to one model)
-  and containing only pages that were actually visited. Set the `UX_APP` /
-  `UX_PAGE` imports to **clear the list first** so no-longer-visited pages
-  don't accumulate as orphans. Think of them as "who opened what, when."
+  and containing only pages that were actually visited. Think of them as
+  "who opened what, when." To drop stale members, note that **list imports
+  have no "clear target prior to import" option** — that's a module-import
+  feature. Instead add a *Delete from list using selection* action for
+  `UX_PAGE` and `UX_APP` (each driven by a boolean set TRUE for all items in
+  a module dimensioned by the list) and sequence the process as: delete
+  `UX_PAGE` → delete `UX_APP` → import `UX_APP` → import `UX_PAGE` (children
+  before parents when deleting; parents before children when importing).
+  Because the staging views are cumulative, a **one-time** clear is usually
+  enough to purge pre-existing orphans; ongoing clearing is optional.
 - **Refresh log.** Set `batchIdListName`, `refreshLogModuleName`, and the
   timestamp/records line-item names to record when each run ran and how
   many rows it loaded (the delta count) — no file/import needed.

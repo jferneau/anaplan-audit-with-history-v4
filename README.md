@@ -419,9 +419,13 @@ fixed set of columns:
 > observed title. Page names aren't unique across apps, so the tool makes
 > them unique by appending the parent app's name
 > (`Model History Analysis (Customer Copy)`). Treat these lists as "who
-> opened what, when." **Clear them on import** (`UX_APP`/`UX_PAGE` import →
-> clear the list first) so pages that are no longer visited don't
-> accumulate as orphans.
+> opened what, when." To drop stale members, **clear the lists with a
+> delete action** — list imports have no "clear target" option (that's a
+> module-import feature), so add a *Delete from list using selection*
+> action for `UX_PAGE` and `UX_APP` and run them in the process before the
+> imports (delete `UX_PAGE` → `UX_APP`, then import `UX_APP` → `UX_PAGE`).
+> Since the staging views are cumulative, a **one-time** clear is usually
+> enough to purge old orphans; ongoing clearing is optional hygiene.
 - **`retainRawJson`** — keep (or drop) the full JSON archive column. Keeping
   it is the forward-compatibility hedge; dropping it trims width if you're
   certain you'll never need attributes beyond the named columns.
