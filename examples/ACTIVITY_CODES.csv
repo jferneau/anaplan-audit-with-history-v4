@@ -12,7 +12,7 @@ AUTHZ-2,Access denied,The associated user ID.,Role ID and Role Name surface in a
 AUTHZ-3,Role assigned,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role assigned
 AUTHZ-4,Role assignment denied,The user ID on which the role assignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role assignment denied
 AUTHZ-6,Role unassigned,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role unassigned
-AUTHZ-7,Role unassignment denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role unassignment denied
+AUTHZ-7,Role unassigned denied,The user ID on which the role unassignment was performed.,Role ID and Role Name surface in additional attributes.,AUTHZ,ACCESS CONTROL,Role unassigned denied
 AUTHZ-11,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL,AUTHZ-11
 AUTHZ-17,Access control event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,AUTHZ,ACCESS CONTROL,AUTHZ-17
 USR-1,User created,The ID of the created user.,(In Anaplan),USR,USER ACTIVITY,User created
@@ -25,7 +25,7 @@ USR-9,User login failure,The ID associated with the user login.,--,USR,USER ACTI
 USR-10,User logout success,The ID associated with the user logout.,--,USR,USER ACTIVITY,User logout success
 USR-11,User logout failure,The ID associated with the user logout.,--,USR,USER ACTIVITY,User logout failure
 USR-12,User session time-out,The ID associated with the user who timed out.,--,USR,USER ACTIVITY,User session time-out
-USR-13,"User access to model, success",The associated model ID.,"Opens a model in Manage Models, opens a bookmarked model, selects a model name in Home/Administration, or navigates to the source model in the UX. ipAddress=NA on this event.",USR,USER ACTIVITY,"User access to model, success"
+USR-13,User access model success,The associated model ID.,"Opens a model in Manage Models, opens a bookmarked model, selects a model name in Home/Administration, or navigates to the source model in the UX. ipAddress=NA on this event.",USR,USER ACTIVITY,User access model success
 USR-14,User access-to-model failure,The associated model ID.,Failed access via the same paths as USR-13. userAgent=NA on this event.,USR,USER ACTIVITY,User access-to-model failure
 USR-15,User assigned to tenant success,The associated user ID.,--,USR,USER ACTIVITY,User assigned to tenant success
 USR-16,User assigned to tenant failure,The associated user ID.,--,USR,USER ACTIVITY,User assigned to tenant failure
@@ -35,21 +35,21 @@ USR-19,User accessed dashboard,The associated model ID.,--,USR,USER ACTIVITY,Use
 USR-20,User executed action,The associated model ID.,--,USR,USER ACTIVITY,User executed action
 USR-21,User added to workspace,The ID of the added user.,--,USR,USER ACTIVITY,User added to workspace
 USR-22,User removed from workspace,The ID of the removed user.,--,USR,USER ACTIVITY,User removed from workspace
-USR-23,User assigned to a model role,The ID of the user assigned the model role.,Includes the No Access role. Assignments and removals of No Access are recorded.,USR,USER ACTIVITY,User assigned to a model role
+USR-23,User assigned to model role,The ID of the user assigned the model role.,Includes the No Access role. Assignments and removals of No Access are recorded.,USR,USER ACTIVITY,User assigned to model role
 USR-24,User unassigned from a model role,The ID of the user unassigned from a role.,Includes the No Access role. Assignments and removals of No Access are recorded.,USR,USER ACTIVITY,User unassigned from a model role
-USR-25,User assigned or unassigned the Workspace Administrator role,The ID associated with the user whose role has changed.,Records assignment or removal of the Workspace Administrator role.,USR,USER ACTIVITY,User assigned or unassigned the Workspace Administrator role
+USR-25,User role access level changed,The ID associated with the user whose role has changed.,Records assignment or removal of the Workspace Administrator role.,USR,USER ACTIVITY,User role access level changed
 USR-26,User email updated,The associated user ID.,--,USR,USER ACTIVITY,User email updated
 USR-27,User first name updated,The associated user ID.,--,USR,USER ACTIVITY,User first name updated
 USR-28,User last name updated,The associated user ID.,--,USR,USER ACTIVITY,User last name updated
 USR-29,User deleted,The associated user ID.,--,USR,USER ACTIVITY,User deleted
 USR-30,Visitor added to workspace,The ID of the added visiting user.,--,USR,USER ACTIVITY,Visitor added to workspace
 USR-31,Visitor removed from workspace,The ID of the removed visiting user.,--,USR,USER ACTIVITY,Visitor removed from workspace
-USR-32,Miscellaneous Data Export,The associated model ID.,"Formerly ""Ad Hoc Data Export"" in earlier releases.",USR,USER ACTIVITY,Miscellaneous Data Export
+USR-32,Ad-Hoc Data Export,The associated model ID.,"Formerly ""Ad Hoc Data Export"" in earlier releases.",USR,USER ACTIVITY,Ad-Hoc Data Export
 USR-33,Assign,The associated model ID.,An object associated to a corresponding list.,USR,USER ACTIVITY,Assign
 USR-34,Copy branch,The associated model ID.,--,USR,USER ACTIVITY,Copy branch
 USR-35,Create,The associated model ID.,A create action was made.,USR,USER ACTIVITY,Create
 USR-36,Data export from action,The associated model ID.,(Within Anaplan),USR,USER ACTIVITY,Data export from action
-USR-38,Delete from list using Selection action has been executed,The associated model ID.,--,USR,USER ACTIVITY,Delete from list using Selection action has been executed
+USR-38,A Delete from List using Selection action has been executed,The associated model ID.,--,USR,USER ACTIVITY,A Delete from List using Selection action has been executed
 USR-39,Model imported via Manage models,The associated model ID.,--,USR,USER ACTIVITY,Model imported via Manage models
 USR-40,An executed optimizer action,The associated model ID.,--,USR,USER ACTIVITY,An executed optimizer action
 USR-41,A process action has been executed,The associated process ID.,--,USR,USER ACTIVITY,A process action has been executed
@@ -62,17 +62,17 @@ USR-47,"UX worksheet ""My Page"" opened",UX App GUID and UX Page GUID.,UX App GU
 USR-48,UX app opened,UX App GUID.,--,USR,USER ACTIVITY,UX app opened
 USR-49,UX page model changed,Not applicable.,--,USR,USER ACTIVITY,UX page model changed
 USR-50,Users updated from an import,The associated model ID.,--,USR,USER ACTIVITY,Users updated from an import
-USR-51,List items updated from an import,The associated model ID.,--,USR,USER ACTIVITY,List items updated from an import
-USR-52,Module data updated from an import,The associated model ID.,--,USR,USER ACTIVITY,Module data updated from an import
+USR-51,List items were imported using import in Anaplan,The associated model ID.,--,USR,USER ACTIVITY,List items were imported using import in Anaplan
+USR-52,Module data was imported using import in Anaplan,The associated model ID.,--,USR,USER ACTIVITY,Module data was imported using import in Anaplan
 USR-53,Versions items updated from an import,The associated model ID.,--,USR,USER ACTIVITY,Versions items updated from an import
 USR-54,Model updated from an import,The associated model ID.,--,USR,USER ACTIVITY,Model updated from an import
-USR-55,User password change,The associated user ID.,--,USR,USER ACTIVITY,User password change
+USR-55,User password change success,The associated user ID.,--,USR,USER ACTIVITY,User password change success
 USR-56,User password change failure,The associated user ID.,--,USR,USER ACTIVITY,User password change failure
-USR-57,User granted Exception access.,The associated user ID.,--,USR,USER ACTIVITY,User granted Exception access.
+USR-57,User granted Exception access,The associated user ID.,--,USR,USER ACTIVITY,User granted Exception access
 USR-58,Revocation of Exception access.,The associated user ID.,--,USR,USER ACTIVITY,Revocation of Exception access.
-USR-59,UX board page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX board page published
+USR-59,Resend activation email,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,Resend activation email
 USR-60,UX worksheet page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX worksheet page published
-USR-61,UX report page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX report page published
+USR-61,User Model Activity Events,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,User Model Activity Events
 USR-62,UX board My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX board My page published
 USR-63,UX worksheet My page published,"UX App GUID, UX Page GUID, Page name.",UX App GUID displays as null.,USR,USER ACTIVITY,UX worksheet My page published
 USR-65,User submitted question,UX App GUID.,--,USR,USER ACTIVITY,User submitted question
@@ -81,9 +81,9 @@ USR-72,Failed import of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed impo
 USR-73,Successful export of IP list,Not applicable.,--,USR,USER ACTIVITY,Successful export of IP list
 USR-74,Failed export of IP list,Not applicable.,--,USR,USER ACTIVITY,Failed export of IP list
 USR-75,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-75
-USR-81,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-81
+USR-81,UX board page published,N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,UX board page published
 USR-82,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-82
-USR-83,User activity event (message pending Anaplan documentation),N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,USR-83
+USR-83,UX report page published,N/A,Code present in API responses; message not yet published by Anaplan.,USR,USER ACTIVITY,UX report page published
 COMMENT-01,Comment added,N/A,Comment events have no associated object ID.,COMMENT,COMMENT,Comment added
 COMMENT-02,Comment deleted,N/A,Comment events have no associated object ID.,COMMENT,COMMENT,Comment deleted
 COMMENT-03,Comments exported,N/A,Comment events have no associated object ID.,COMMENT,COMMENT,Comments exported
