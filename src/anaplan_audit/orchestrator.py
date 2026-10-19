@@ -25,7 +25,7 @@ import pandas as pd
 import structlog
 from pydantic import BaseModel
 
-from anaplan_audit.api.audit import dump_audit_events, fetch_audit_events
+from anaplan_audit.api.audit import dump_audit_events, fetch_audit_events, next_fetch_watermark
 from anaplan_audit.api.client import APIClient
 from anaplan_audit.api.cloudworks import list_integrations
 from anaplan_audit.api.integration import (
@@ -245,6 +245,11 @@ def _run_locked(
                 batch_size=settings.auditBatchSize,
                 max_events=limit,
             )
+            watermark = next_fetch_watermark(
+                settings.lastRun,
+                events,
+                capped=limit is not None and len(events) >= limit,
+            )
 
             if len(events) == 0:
                 log.warning(
@@ -327,7 +332,14 @@ def _run_locked(
                 else:
                     log.info("pipeline_step_start", step="upload")
                     t0 = time.monotonic()
-                    upload_audit_data(client, result_df, settings, db_path=db_path, full=full)
+                    upload_audit_data(
+                        client,
+                        result_df,
+                        settings,
+                        db_path=db_path,
+                        full=full,
+                        watermark=watermark,
+                    )
                     log.info("pipeline_step_done", step="upload", duration_ms=_elapsed(t0))
 
             # Optional audit-event retention (0 = keep forever).
