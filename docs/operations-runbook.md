@@ -234,8 +234,10 @@ event:
 
 This is expected and correct — it's the **two different counts**:
 
-- `audit_events_fetched` is incremental — only events new since
-  `lastRun`. Back-to-back runs fetch ~0.
+- `audit_events_fetched` is incremental — only events since `lastRun`,
+  which trails the newest fetched event by a one-hour overlap. Back-to-back
+  runs re-fetch just that last hour; the duplicates are dropped before
+  upload.
 - The Refresh Log's `Audit Records Loaded` is the **delta uploaded** this
   run (`audit_load_incremental`'s `delta`). On an immediate re-run it is
   ~0.

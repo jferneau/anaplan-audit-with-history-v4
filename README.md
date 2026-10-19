@@ -104,7 +104,7 @@ target model(s). Here's what each setting does and when to change it.
 | `anaplanTenantName` | Your tenant's display name. Stamped onto every audit row so a multi-tenant report can tell them apart. |
 | `authenticationMode` | `OAuth` (recommended), `cert_auth`, or `basic`. |
 | `database` | Path to the local database file the tool builds and reuses. Point at a **fresh** file for v4. |
-| `lastRun` | Watermark of the last successful run (managed for you). Leave `0` on first run — the tool only pulls new events after that. |
+| `lastRun` | Fetch watermark (managed for you). Leave `0` on first run. After each successful upload it is set to the newest event fetched minus one hour, so each run re-checks the last hour for late-arriving events; duplicates are dropped automatically. |
 | `auditBatchSize` | Events fetched per API page (default `1000`). Rarely changed. |
 | `auditRetentionYears` | How many years of audit events to keep locally. `0` = keep forever. A backup is taken before any purge. |
 
@@ -509,7 +509,7 @@ list and the event feed.
 - `--dry-run` — extract + transform, skip upload
 - `--full` — reload every audit fact instead of just the delta (see below)
 - `--verbose` — detailed console output
-- `--since EPOCH` / `--limit N` — bounded / sample runs
+- `--since EPOCH` / `--limit N` — bounded / sample runs (a `--limit` run never advances `lastRun`)
 - `--log-dir PATH` / `--no-log-file` — control the per-run log file
 
 </details>

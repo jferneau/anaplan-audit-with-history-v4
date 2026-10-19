@@ -29,6 +29,15 @@ from anaplan_audit.api.models import AuditEvent
 
 logger: structlog.stdlib.BoundLogger = structlog.get_logger()
 
+FETCH_OVERLAP_SECONDS = 3600
+"""How far the persisted ``lastRun`` trails the newest event fetched.
+
+Each run re-fetches this window so an event Anaplan surfaces slightly after
+its timestamp is still picked up. The re-fetched events are harmless: the
+DuckDB upsert collapses them on ``id`` and the upload delta skips any
+``AUDIT_ID`` already in the model.
+"""
+
 # Module-level and reused — constructing a TypeAdapter builds a validator +
 # serializer, which is exactly the overhead the batch approach avoids paying
 # per call.
@@ -113,6 +122,32 @@ def fetch_audit_events(
     validated = _AUDIT_EVENTS_ADAPTER.validate_python(raw_events)
     logger.info("audit_events_fetched", total_count=len(validated), since_epoch=since_epoch)
     return validated
+
+
+def next_fetch_watermark(previous: int, events: list[AuditEvent], *, capped: bool) -> int | None:
+    """Return the ``lastRun`` to persist after this fetch, or ``None`` to keep it.
+
+    The watermark is derived from the newest event actually fetched, minus
+    :data:`FETCH_OVERLAP_SECONDS` — never from the wall clock. Stamping
+    ``time.time()`` after the upload (the original behaviour) skipped every
+    event that occurred while the run was in flight, and every event Anaplan
+    surfaced late.
+
+    It never moves backwards, and it does not advance at all after a capped
+    (``--limit``) fetch: the API's page order isn't guaranteed chronological,
+    so a sample says nothing about which events were left behind.
+
+    Args:
+        previous: The ``lastRun`` this fetch started from (epoch seconds).
+        events: The events this run fetched.
+        capped: ``True`` when the fetch stopped at ``--limit``.
+    """
+    if capped or not events:
+        return None
+    newest = max(e.eventDate for e in events) // 1000
+    if newest <= 0:
+        return None
+    return max(previous, newest - FETCH_OVERLAP_SECONDS)
 
 
 def dump_audit_events(events: list[AuditEvent]) -> list[dict[str, Any]]:

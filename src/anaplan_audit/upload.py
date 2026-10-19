@@ -327,6 +327,7 @@ def upload_audit_data(
     *,
     db_path: Path | None = None,
     full: bool = False,
+    watermark: int | None = None,
 ) -> None:
     """Upload the audit run's data to the target Anaplan Reporting Model.
 
@@ -351,6 +352,9 @@ def upload_audit_data(
         full: Force a complete reload — bypass the incremental delta and
             upload every audit row. Use after a model rebuild or an
             ``additionalAttributes`` backfill.
+        watermark: The ``lastRun`` to persist once the upload succeeds, from
+            :func:`~anaplan_audit.api.audit.next_fetch_watermark`. ``None``
+            leaves ``lastRun`` unchanged.
     """
     target = settings.targetAnaplanModel
     integration_uri = settings.uris.integrationUri
@@ -390,7 +394,8 @@ def upload_audit_data(
             client, upload_df, settings, log, file_map=file_map, import_map=import_map
         )
 
-    # Capture the run timestamp AFTER a successful upload path.
+    # Run time for the model's LAST_RUN display and the BATCH_ID code. The
+    # fetch watermark is separate: it comes from the events, not the clock.
     new_last_run = int(time.time())
 
     _upload_last_run_to_anaplan(
@@ -401,9 +406,10 @@ def upload_audit_data(
         client, settings, new_last_run, row_count=len(upload_df), log=log
     )
     _sync_lists_transactional(client, settings, df, log=log)
-    _update_last_run(settings, new_last_run)
+    if watermark is not None:
+        _update_last_run(settings, watermark)
 
-    log.info("upload_complete", new_last_run=new_last_run)
+    log.info("upload_complete", new_last_run=new_last_run, watermark=watermark)
 
 
 def _upload_single_file(
