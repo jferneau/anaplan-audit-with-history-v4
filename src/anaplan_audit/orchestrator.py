@@ -50,7 +50,7 @@ from anaplan_audit.auth.cert import authenticate_cert
 from anaplan_audit.auth.models import AuthToken
 from anaplan_audit.auth.oauth import refresh_access_token
 from anaplan_audit.auth.token_store import TokenStore
-from anaplan_audit.config import Settings, WorkspaceModelCombo
+from anaplan_audit.config import Settings, WorkspaceModelCombo, config_warnings
 from anaplan_audit.exceptions import ConfigError, RunLockError
 from anaplan_audit.model_history import classification
 from anaplan_audit.model_history.history_service import fetch_model_history
@@ -189,6 +189,9 @@ def run(
         AnaplanAuditError: On any unrecoverable pipeline failure.
     """
     db_path = Path(settings.database)
+
+    for warning in config_warnings(settings):
+        log.warning("config_warning", message=warning)
 
     with _RunLock(db_path):
         return _run_locked(settings, log, db_path=db_path, dry_run=dry_run, limit=limit, full=full)
@@ -679,9 +682,12 @@ def _resolve_combos(
 ) -> list[WorkspaceModelCombo]:
     """Resolve workspace/model combos based on filter approach.
 
-    In ``select`` mode, each combo may reference the workspace and model by
-    **ID or display name** — names are resolved to IDs against the live
-    tenant, so customers don't need to dig IDs out of URLs.
+    In both modes, each combo may reference the workspace and model by
+    **ID or display name** — names are resolved against the live tenant,
+    so customers don't need to dig IDs out of URLs.
+
+    In ``skip`` mode, a workspace whose models can't be listed is logged
+    and left out rather than aborting the run.
 
     Args:
         client: An authenticated API client.
@@ -691,20 +697,42 @@ def _resolve_combos(
         The list of workspace/model combos to process (always IDs).
 
     Raises:
-        ConfigError: If a workspace or model name/ID cannot be resolved.
+        ConfigError: If a ``select`` workspace or model name/ID cannot be
+            resolved.
     """
     if settings.workspaceModelFilterApproach == "select":
         return _resolve_names_to_ids(client, settings, settings.workspaceModelCombos)
 
     # "skip" mode — get all workspaces, exclude the listed combos
-    skip_set = {(c.workspaceId, c.modelId) for c in settings.workspaceModelCombos}
+    skip_refs = [(c.workspaceId.lower(), c.modelId.lower()) for c in settings.workspaceModelCombos]
+    matched: set[tuple[str, str]] = set()
     uri = settings.uris.integrationUri
     result: list[WorkspaceModelCombo] = []
 
     for ws in list_workspaces(client, uri):
-        for m in list_models(client, uri, ws.id):
-            if (ws.id, m.id) not in skip_set:
+        try:
+            models = list_models(client, uri, ws.id)
+        except Exception as exc:
+            logger.warning(
+                "workspace_models_unavailable",
+                workspace_id=ws.id,
+                workspace_name=ws.name,
+                error=str(exc),
+            )
+            continue
+        ws_keys = {ws.id.lower(), ws.name.lower()}
+        for m in models:
+            m_keys = {m.id.lower(), m.name.lower()}
+            hits = {ref for ref in skip_refs if ref[0] in ws_keys and ref[1] in m_keys}
+            if hits:
+                matched |= hits
+                logger.info("model_skipped", workspace_id=ws.id, model_id=m.id)
+            else:
                 result.append(WorkspaceModelCombo(workspaceId=ws.id, modelId=m.id))
+
+    for c in settings.workspaceModelCombos:
+        if (c.workspaceId.lower(), c.modelId.lower()) not in matched:
+            logger.warning("skip_combo_not_found", workspace=c.workspaceId, model=c.modelId)
 
     return result
 

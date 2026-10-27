@@ -191,15 +191,15 @@ annotated `settings.json.example`; the fields most relevant to internals:
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `anaplanTenantName` | string | (required) | Tenant name. Injected into `audit_query.sql` as the tenant name and stamped on every row. |
+| `anaplanTenantName` | string | `""` | Tenant name. Injected into `audit_query.sql` as the tenant name and stamped on every row. Blank leaves `TENANT_NAME` empty; the run and `validate-config` warn when the audit pipeline is on. |
 | `authenticationMode` | string | `OAuth` | One of `basic`, `cert_auth`, `OAuth`. |
 | `database` | string | `anaplan_audit.db` | Path to the **DuckDB** database file. Point at a fresh file for v4. |
 | `lastRun` | int (Unix seconds) | `0` | Watermark for the next audit fetch. `0` backfills from the start of Anaplan's ~30-day retention. After every successful upload it is written back to the loaded settings file (respects `--config`) as the newest fetched event's time minus a one-hour re-fetch overlap — never the wall clock, which would skip events that occur during the run or surface late. It never moves backwards, and a capped `--limit` run leaves it unchanged. |
 | `auditBatchSize` | int | `1000` | Page size for audit event fetches. |
 | `auditRetentionYears` | int | `0` | Purge audit events older than this many years (`0` = keep forever). A timestamped backup precedes each purge. |
 | `auditEnabled` | bool | `true` | Gates Steps 2–6. |
-| `workspaceModelFilterApproach` | string | `select` | `select` (audit the listed combos) or `skip` (audit all except the listed). |
-| `workspaceModelCombos` | list | `[]` | `{workspaceId, modelId}` pairs — **names or IDs**; names resolve against the live tenant at startup. |
+| `workspaceModelFilterApproach` | string | `select` | `select` (audit the listed combos) or `skip` (audit all except the listed). `skip` with `[]` = every model; `select` with `[]` = no models (warned). In `skip` mode a workspace whose models can't be listed is logged (`workspace_models_unavailable`) and left out. |
+| `workspaceModelCombos` | list | `[]` | `{workspaceId, modelId}` pairs — **names or IDs** in either mode; names resolve case-insensitively against the live tenant at startup. A `skip` entry matching no model logs `skip_combo_not_found`. |
 | `targetAnaplanModel` | object | (required) | The audit reporting model + its file/import/process object names (Section 4.2). |
 | `modelHistory` | object | see Section 7 | The optional Model History pipeline. |
 
