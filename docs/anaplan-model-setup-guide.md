@@ -76,7 +76,12 @@ that imports them. Defaults match the standard model — override the
 
 Optional staging lists (uploaded when their file-name key is set):
 `uxAppListFileName`, `uxPageListFileName`, and CloudWorks / Action /
-Process / Role / Target-User lists.
+Process / Role / Target-User lists. Each list has one item per ID, named by
+the most recent name seen, trimmed and capped at 60 characters. When two
+IDs share a name (ignoring case), each gets the last 8 characters of its ID
+as a tag, e.g. `Load Users [00000128]`. Action and Process IDs are unique
+only within a model, so the same ID used in two models appears as a single
+item.
 
 > **Set every file source to UTF-8.** The tool writes UTF-8. A source
 > whose import data source settings use another encoding (for example
