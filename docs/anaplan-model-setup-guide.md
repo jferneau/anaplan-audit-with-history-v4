@@ -78,6 +78,13 @@ Optional staging lists (uploaded when their file-name key is set):
 `uxAppListFileName`, `uxPageListFileName`, and CloudWorks / Action /
 Process / Role / Target-User lists.
 
+> **Set every file source to UTF-8.** The tool writes UTF-8. A source
+> whose import data source settings use another encoding (for example
+> ISO-8859-1) mangles non-ASCII text. App names that Anaplan shortened
+> with "…" arrive as "â¦", which pushes a 60-character name past the
+> list-name limit and fails as *Invalid name*. When the API reports a
+> source's encoding, the run logs `file_source_not_utf8` for it.
+
 ## 2.2 The `EVENT_ID` list (hierarchical)
 
 In v4 the event-type codes live in a **hierarchical** list,
@@ -151,7 +158,10 @@ top-level dashboard filter. The `UX_*` / `ADO_*` / `WORKFLOW_*` /
   `UX_PAGE` import (pages nest under apps) and run the **UX_APP import
   before UX_PAGE**. The tool guarantees every page's parent app exists, and
   makes page names unique by appending the parent app name when two apps
-  share a page title. **Important:** these are *observed activity* lists
+  share a page title. Names are compared the way Anaplan compares them
+  (ignoring case and extra spaces) and capped at 60 characters; apps that
+  still share a name get a short ID tag (`Sales App [1a2b3c4d]`).
+  **Important:** these are *observed activity* lists
   built from the audit stream — tenant-wide (not filterable to selected
   models; Anaplan has no apps/pages API and a page isn't tied to one model)
   and containing only pages that were actually visited. Think of them as
