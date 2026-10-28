@@ -533,6 +533,27 @@ class Settings(BaseSettings):
         return self
 
 
+def config_warnings(settings: Settings) -> list[str]:
+    """Return likely misconfigurations that are valid but almost never intended.
+
+    These don't fail validation — each describes a legal setup — but each
+    silently produces thinner output than a first-time user expects.
+    """
+    found: list[str] = []
+    if settings.workspaceModelFilterApproach == "select" and not settings.workspaceModelCombos:
+        found.append(
+            'workspaceModelFilterApproach is "select" but workspaceModelCombos is '
+            "empty, so no models are in scope: actions, processes and files are not "
+            "fetched and model history has nothing to export. Audit events are still "
+            'fetched tenant-wide. To include every model, use "skip" with an empty list.'
+        )
+    if settings.auditEnabled and not settings.anaplanTenantName.strip():
+        found.append(
+            "anaplanTenantName is blank, so the TENANT_NAME column in AUDIT_LOG.csv will be empty."
+        )
+    return found
+
+
 def load_settings(config_path: Path | None = None) -> Settings:
     """Load settings with JSON file as a base layer.
 
