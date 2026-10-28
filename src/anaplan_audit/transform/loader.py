@@ -501,30 +501,37 @@ _CATEGORY_TO_VIEWS: dict[str, list[str]] = {
 # UX apps/pages come from the audit stream (no Anaplan apps/pages API exists),
 # so these two views are the whole catalog of *observed* UX activity. They need
 # custom SQL the generic template can't express: a complete app list (so no
-# page orphans) and unique, readable names (Anaplan list names must be unique,
-# and page names collide across apps). A collision gets a short id tag; the
-# 49-char trim keeps the result within Anaplan's 60-char list-name limit.
-_V_UX_APP_SQL = """
-CREATE OR REPLACE VIEW {view} AS
+# page orphans) and unique, readable names. Uniqueness is judged the way
+# Anaplan judges it — ignoring case and runs of whitespace — and every name is
+# trimmed and capped at Anaplan's 60-character list-name limit *before* the
+# collision check, so two long names sharing a 60-char prefix are caught too.
+# A collision gets a short id tag; the 49-char trim keeps the tagged name
+# within the limit.
+_LIST_NAME = "rtrim(substr(trim(regexp_replace({expr}, '[\\s\\pZ]+', ' ', 'g')), 1, 60))"
+
+_V_UX_APP_SQL = f"""
+CREATE OR REPLACE VIEW {{view}} AS
 WITH apps AS (
     SELECT app_id AS code,
-           COALESCE(MAX(NULLIF(app_name, '')), app_id) AS base_name
+           {_LIST_NAME.format(expr="COALESCE(MAX(NULLIF(trim(app_name), '')), app_id)")}
+               AS base_name
     FROM events
     WHERE app_id IS NOT NULL AND app_id <> ''
     GROUP BY app_id
 )
 SELECT code,
-       CASE WHEN count(*) OVER (PARTITION BY base_name) > 1
-            THEN substr(base_name, 1, 49) || ' [' || substr(code, 1, 8) || ']'
+       CASE WHEN count(*) OVER (PARTITION BY lower(base_name)) > 1
+            THEN rtrim(substr(base_name, 1, 49)) || ' [' || substr(code, 1, 8) || ']'
             ELSE base_name END AS name
 FROM apps
 """
 
-_V_UX_PAGE_SQL = """
-CREATE OR REPLACE VIEW {view} AS
+_V_UX_PAGE_SQL = f"""
+CREATE OR REPLACE VIEW {{view}} AS
 WITH pages AS (
     SELECT page_id AS code,
-           COALESCE(MAX(NULLIF(page_name, '')), page_id) AS base_name,
+           {_LIST_NAME.format(expr="COALESCE(MAX(NULLIF(trim(page_name), '')), page_id)")}
+               AS base_name,
            MAX(app_id) AS parent_code
     FROM events
     WHERE page_id IS NOT NULL AND page_id <> ''
@@ -533,27 +540,29 @@ WITH pages AS (
 ),
 app_names AS (
     SELECT app_id,
-           COALESCE(MAX(NULLIF(app_name, '')), app_id) AS app_nm
+           {_LIST_NAME.format(expr="COALESCE(MAX(NULLIF(trim(app_name), '')), app_id)")}
+               AS app_nm
     FROM events
     WHERE app_id IS NOT NULL AND app_id <> ''
     GROUP BY app_id
 ),
 dups AS (
-    SELECT base_name FROM pages GROUP BY base_name HAVING count(*) > 1
+    SELECT lower(base_name) AS key FROM pages GROUP BY 1 HAVING count(*) > 1
 ),
 cand AS (
     SELECT p.code,
            p.parent_code,
-           CASE WHEN d.base_name IS NOT NULL
-                THEN substr(p.base_name || ' (' || COALESCE(a.app_nm, p.parent_code) || ')', 1, 60)
+           CASE WHEN d.key IS NOT NULL
+                THEN rtrim(substr(p.base_name || ' (' || COALESCE(a.app_nm, p.parent_code) || ')',
+                                  1, 60))
                 ELSE p.base_name END AS nm
     FROM pages p
-    LEFT JOIN dups d ON p.base_name = d.base_name
+    LEFT JOIN dups d ON lower(p.base_name) = d.key
     LEFT JOIN app_names a ON p.parent_code = a.app_id
 )
 SELECT code,
-       CASE WHEN count(*) OVER (PARTITION BY nm) > 1
-            THEN substr(nm, 1, 49) || ' [' || substr(code, 1, 8) || ']'
+       CASE WHEN count(*) OVER (PARTITION BY lower(nm)) > 1
+            THEN rtrim(substr(nm, 1, 49)) || ' [' || substr(code, 1, 8) || ']'
             ELSE nm END AS name,
        parent_code
 FROM cand

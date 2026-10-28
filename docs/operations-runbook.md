@@ -227,6 +227,7 @@ event:
 | `model_history_*` (warning) | A single model export/upload issue — other models continue; audit run unaffected |
 | `config_warning` | A valid but probably unintended setting (empty `select` list, blank `anaplanTenantName`). Also printed by `validate-config` |
 | `workspace_models_unavailable` / `skip_combo_not_found` (warning) | `skip` mode: a workspace's models couldn't be listed, or a skip entry matched no model |
+| `file_source_not_utf8` (warning) | A configured file source isn't set to UTF-8; non-ASCII names will be mangled. Fix the encoding in the model |
 
 ---
 
@@ -257,6 +258,13 @@ unsuccessful** (exit 4). On `import_failed_in_anaplan` with
 `failure_dump_available: true`, open the import action in the model and
 download the failure dump — usual causes are column-mapping drift or list
 items missing from the target model.
+
+On a list import (`UX_APP`, `UX_PAGE`, and so on):
+
+| Failure dump message | Cause and fix |
+|---|---|
+| `Invalid name: …â¦…` | The file source isn't UTF-8. In the model, set the import data source's encoding to UTF-8. Look for `file_source_not_utf8` in the log |
+| `Another row has already been processed with this key` | Two rows share a code or a name. Anaplan names ignore case and extra spaces. The UX views account for this from this release on; on an older build, upgrade |
 
 ## 5.3 Zero records — is this a failure?
 

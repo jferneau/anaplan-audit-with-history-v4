@@ -141,6 +141,29 @@ _STAGING_VIEW_UPLOADS: list[tuple[str, str, str]] = [
 ]
 
 
+def _target_file_map(
+    client: APIClient,
+    settings: Settings,
+    log: structlog.stdlib.BoundLogger,
+) -> dict[str, str]:
+    """Map the target model's file names to IDs, flagging non-UTF-8 sources.
+
+    Every CSV the tool uploads is UTF-8. A file source the model reads with
+    another encoding mangles non-ASCII text: "…" arrives as "â¦", which can
+    push a 60-character list name past Anaplan's limit ("Invalid name").
+    The encoding is a property of the file source in the model, so this can
+    only warn; the fix is to set the source to UTF-8 in Anaplan.
+    """
+    target = settings.targetAnaplanModel
+    ours = {v for k, v in target.objects.model_dump().items() if k.endswith("FileName") and v}
+    files = list_files(client, settings.uris.integrationUri, target.workspaceId, target.modelId)
+    for f in files:
+        encoding = str(getattr(f, "encoding", "") or "")
+        if f.name in ours and encoding and encoding.replace("-", "").upper() != "UTF8":
+            log.warning("file_source_not_utf8", file_name=f.name, encoding=encoding)
+    return {f.name: f.id for f in files}
+
+
 def _upload_staging_views(
     client: APIClient,
     settings: Settings,
@@ -360,10 +383,7 @@ def upload_audit_data(
     integration_uri = settings.uris.integrationUri
     log = logger.bind(workspace_id=target.workspaceId, model_id=target.modelId)
 
-    file_map = {
-        f.name: f.id
-        for f in list_files(client, integration_uri, target.workspaceId, target.modelId)
-    }
+    file_map = _target_file_map(client, settings, log)
     import_map = {
         i.name: i.id
         for i in list_imports(client, integration_uri, target.workspaceId, target.modelId)

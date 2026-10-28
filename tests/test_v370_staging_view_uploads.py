@@ -16,6 +16,7 @@ from unittest.mock import MagicMock
 
 import duckdb
 import pandas as pd
+import pytest
 
 from anaplan_audit.api.models import ImportDataSource
 from anaplan_audit.config import (
@@ -330,3 +331,34 @@ class TestUploadStagingViews:
         # One empty header-only CSV pushed.
         assert len(uploaded) == 1
         assert uploaded[0].strip() == "code,name"
+
+
+class TestFileSourceEncoding:
+    """The tool uploads UTF-8; a file source read as anything else mangles names."""
+
+    def _warnings(self, monkeypatch: pytest.MonkeyPatch, files: list[ImportDataSource]) -> list:
+        import anaplan_audit.upload as upload_mod
+
+        monkeypatch.setattr(upload_mod, "list_files", lambda *a, **k: files)
+        log = MagicMock()
+        file_map = upload_mod._target_file_map(MagicMock(), _make_settings(), log)
+        assert file_map == {f.name: f.id for f in files}
+        return [c.kwargs for c in log.warning.call_args_list]
+
+    def test_warns_for_a_configured_file_that_is_not_utf8(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = [ImportDataSource(id="f1", name="v_ux_app.csv", encoding="ISO-8859-1")]
+        assert self._warnings(monkeypatch, files) == [
+            {"file_name": "v_ux_app.csv", "encoding": "ISO-8859-1"}
+        ]
+
+    def test_quiet_for_utf8_unconfigured_or_unreported_files(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = [
+            ImportDataSource(id="f1", name="v_ux_app.csv", encoding="UTF-8"),
+            ImportDataSource(id="f2", name="AUDIT_LOG.csv"),
+            ImportDataSource(id="f3", name="someone_elses.csv", encoding="ISO-8859-1"),
+        ]
+        assert self._warnings(monkeypatch, files) == []

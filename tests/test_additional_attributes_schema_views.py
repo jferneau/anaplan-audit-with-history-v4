@@ -299,6 +299,82 @@ class TestStagingViews:
         assert len(set(names)) == 2  # unique despite identical app_name
         assert all(n.startswith("Sales App") for n in names)
 
+    def _app_names(self, tmp_path: Path, apps: list[tuple[str, str]]) -> dict[str, str]:
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [{"id": str(i), "app_id": a, "app_name": n} for i, (a, n) in enumerate(apps)]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            return dict(conn.execute("SELECT code, name FROM v_ux_app").fetchall())
+
+    def test_app_names_differing_only_by_case_or_spacing_are_disambiguated(
+        self, tmp_path: Path
+    ) -> None:
+        # Anaplan list names ignore case and surrounding/repeated whitespace,
+        # so these three would otherwise fail as "Another row has already
+        # been processed with this key".
+        names = self._app_names(
+            tmp_path,
+            [
+                ("app-1111aaaa", "Audit Report V2.4"),
+                ("app-2222bbbb", "audit report v2.4 "),
+                ("app-3333cccc", "Audit  Report\u00a0V2.4"),
+            ],
+        )
+        assert len({n.lower() for n in names.values()}) == 3
+        assert names["app-1111aaaa"] == "Audit Report V2.4 [app-1111]"
+
+    def test_app_names_are_normalised_and_capped_at_60(self, tmp_path: Path) -> None:
+        long_name = "RETAIL - Merchandise Financial & Assortment P\u2026 (Duplicate 1)"
+        assert len(long_name) == 60
+        names = self._app_names(
+            tmp_path,
+            [
+                ("app-1", f"  {long_name}  "),
+                ("app-2", "X" * 70),
+            ],
+        )
+        assert names["app-1"] == long_name
+        assert names["app-2"] == "X" * 60
+
+    def test_app_names_colliding_after_the_60_char_cap_are_disambiguated(
+        self, tmp_path: Path
+    ) -> None:
+        prefix = "Y" * 60
+        names = self._app_names(
+            tmp_path, [("app-1111aaaa", prefix + " East"), ("app-2222bbbb", prefix + " West")]
+        )
+        assert len(set(names.values())) == 2
+        assert all(len(n) <= 60 for n in names.values())
+
+    def test_page_names_differing_only_by_case_are_disambiguated(self, tmp_path: Path) -> None:
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [
+                {
+                    "id": "1",
+                    "app_id": "appA",
+                    "app_name": "Audit",
+                    "page_id": "pgA",
+                    "page_name": "Overview",
+                },
+                {
+                    "id": "2",
+                    "app_id": "appB",
+                    "app_name": "Sales",
+                    "page_id": "pgB",
+                    "page_name": "overview",
+                },
+            ]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            names = dict(conn.execute("SELECT code, name FROM v_ux_page").fetchall())
+        assert names == {"pgA": "Overview (Audit)", "pgB": "overview (Sales)"}
+
     def test_category_gating_creates_only_requested_views(self, tmp_path: Path) -> None:
         db_path = tmp_path / "test.db"
         load_to_duckdb(db_path, {"events": _sample_events_df()})
