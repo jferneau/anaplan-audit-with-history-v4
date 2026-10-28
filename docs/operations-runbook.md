@@ -264,7 +264,7 @@ On a list import (`UX_APP`, `UX_PAGE`, and so on):
 | Failure dump message | Cause and fix |
 |---|---|
 | `Invalid name: …â¦…` | The file source isn't UTF-8. In the model, set the import data source's encoding to UTF-8. Look for `file_source_not_utf8` in the log |
-| `Another row has already been processed with this key` | Two rows share a code or a name. Anaplan names ignore case and extra spaces. The UX views account for this from this release on; on an older build, upgrade |
+| `Another row has already been processed with this key` | Two rows share a code or a name. Anaplan names ignore case and extra spaces. From 4.0.0, every staging list emits one row per code (renamed items take their latest name) and tags names that clash, so on an older build, upgrade. Known limit: Action and Process IDs are only unique within a model, so the same ID used in two models still shows as one item |
 
 ## 5.3 Zero records — is this a failure?
 

@@ -470,12 +470,9 @@ def _ensure_event_columns(
 # source (spec Section 6.3). Non-null / non-empty filters guarantee spec
 # Acceptance criterion #6 — no orphan rows land in Anaplan lists.
 # category → (view name, id column, name column, parent id column | None).
-# The optional 4th element makes the list HIERARCHICAL: the view emits an extra
-# ``parent_code`` column so the reporting model can nest the list under its
-# parent. Only UX pages use it — a page nests under its app — every other list
-# is flat. When a parent is set, rows missing the parent id are also filtered
-# out, so no child item lands without a parent (Anaplan rejects a parentless
-# item in a child list).
+# The optional 4th element marks a HIERARCHICAL list. Only UX pages use it — a
+# page nests under its app, via the parent_code column _V_UX_PAGE_SQL emits —
+# every other list is flat.
 _STAGING_VIEWS: dict[str, tuple[str, str, str, str | None]] = {
     "uxAppPage_app": ("v_ux_app", "app_id", "app_name", None),
     "uxAppPage_page": ("v_ux_page", "page_id", "page_name", "app_id"),
@@ -569,6 +566,31 @@ FROM cand
 """
 
 
+# The flat lists (CloudWorks integration, action, process, role, target user)
+# share one definition. One row per id, named by its most recent name, so a
+# rename doesn't emit the id twice ("Another row has already been processed
+# with this key"). Names follow the same rules as the UX lists; a collision
+# gets the id's last 8 characters as a tag, because action/process ids share
+# a long common prefix (112000000…, 118000000…) and the first 8 never differ.
+# ``-1`` is Anaplan's placeholder for an unsaved action, not a real id.
+_V_LIST_SQL = f"""
+CREATE OR REPLACE VIEW {{view}} AS
+WITH latest AS (
+    SELECT "{{id_col}}" AS code,
+           {_LIST_NAME.format(expr='arg_max("{name_col}", {order_col})')} AS base_name
+    FROM events
+    WHERE "{{id_col}}" IS NOT NULL AND "{{id_col}}" NOT IN ('', '-1')
+      AND trim("{{name_col}}") <> ''
+    GROUP BY 1
+)
+SELECT code,
+       CASE WHEN count(*) OVER (PARTITION BY lower(base_name)) > 1
+            THEN rtrim(substr(base_name, 1, 49)) || ' [' || right(code, 8) || ']'
+            ELSE base_name END AS name
+FROM latest
+"""
+
+
 def ensure_staging_views(
     db_path: Path,
     *,
@@ -577,9 +599,10 @@ def ensure_staging_views(
     """Create or refresh the additionalAttributes staging views.
 
     Views feed the Anaplan list imports described in spec Section 6.3.
-    Every view emits distinct ``(code, name)`` pairs, filtered so no
-    row has a null or empty code or name — Anaplan lists reject empty
-    codes and would blow up the property-based imports downstream.
+    Every view emits one row per code with a unique, non-empty name of at
+    most 60 characters, judged the way Anaplan judges list names (ignoring
+    case and extra whitespace). Anaplan lists reject empty codes, duplicate
+    keys and over-long names, any of which fails the list import.
 
     Args:
         db_path: Path to the DuckDB database file.
@@ -603,7 +626,8 @@ def ensure_staging_views(
             logger.debug("staging_views_skipped_no_events_table")
             return
 
-        for view_key, (view_name, id_col, name_col, parent_col) in _STAGING_VIEWS.items():
+        event_cols = {r[0] for r in conn.execute(f"DESCRIBE {_EVENTS_TABLE}").fetchall()}
+        for view_key, (view_name, id_col, name_col, _parent) in _STAGING_VIEWS.items():
             if view_key not in wanted_view_keys:
                 # Drop unwanted views so a config toggle cleans up
                 # after itself; DROP VIEW IF EXISTS is a no-op when the
@@ -632,21 +656,17 @@ def ensure_staging_views(
                 conn.execute(_V_UX_PAGE_SQL.format(view=view_name))
                 continue
 
-            # Hierarchical lists (only UX pages today) emit an extra
-            # parent_code column and drop rows with no parent id.
-            parent_select = f', "{parent_col}" AS parent_code' if parent_col else ""
-            parent_where = (
-                f' AND "{parent_col}" IS NOT NULL AND "{parent_col}" != \'\'' if parent_col else ""
-            )
-            # CREATE OR REPLACE (not IF NOT EXISTS) so a definition change —
-            # e.g. adding the hierarchical parent_code column — propagates to
-            # an existing database on the next run. View creation is cheap.
+            # CREATE OR REPLACE (not IF NOT EXISTS) so a definition change
+            # propagates to an existing database on the next run. View
+            # creation is cheap. Real events always carry eventDate; the id
+            # fallback only serves minimal test tables.
             conn.execute(
-                f"CREATE OR REPLACE VIEW {view_name} AS "
-                f'SELECT DISTINCT "{id_col}" AS code, "{name_col}" AS name{parent_select} '
-                f"FROM {_EVENTS_TABLE} "
-                f'WHERE "{id_col}" IS NOT NULL AND "{id_col}" != \'\' '
-                f'  AND "{name_col}" IS NOT NULL AND "{name_col}" != \'\'{parent_where}'
+                _V_LIST_SQL.format(
+                    view=view_name,
+                    id_col=id_col,
+                    name_col=name_col,
+                    order_col='"eventDate"' if "eventDate" in event_cols else '"id"',
+                )
             )
 
     logger.info(

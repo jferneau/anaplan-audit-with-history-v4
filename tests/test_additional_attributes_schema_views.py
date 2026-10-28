@@ -375,6 +375,59 @@ class TestStagingViews:
             names = dict(conn.execute("SELECT code, name FROM v_ux_page").fetchall())
         assert names == {"pgA": "Overview (Audit)", "pgB": "overview (Sales)"}
 
+    def _action_rows(self, tmp_path: Path, events: list[tuple[str, str, int]]) -> dict[str, str]:
+        db_path = tmp_path / "test.db"
+        df = pd.DataFrame(
+            [
+                {"id": str(i), "eventDate": when, "action_id": a, "action_name": n}
+                for i, (a, n, when) in enumerate(events)
+            ]
+        )
+        load_to_duckdb(db_path, {"events": df})
+        ensure_staging_views(db_path)
+        with closing(duckdb.connect(str(db_path))) as conn:
+            rows = conn.execute("SELECT code, name FROM v_action").fetchall()
+        assert len(rows) == len({code for code, _ in rows}), "duplicate code emitted"
+        return dict(rows)
+
+    def test_renamed_list_item_emits_one_row_with_latest_name(self, tmp_path: Path) -> None:
+        rows = self._action_rows(
+            tmp_path,
+            [
+                ("112000000128", "Load Users v2", 2_000),
+                ("112000000128", "Load Users", 1_000),
+            ],
+        )
+        assert rows == {"112000000128": "Load Users v2"}
+
+    def test_list_names_differing_only_by_case_get_an_id_suffix_tag(self, tmp_path: Path) -> None:
+        rows = self._action_rows(
+            tmp_path,
+            [
+                ("112000000128", "Load Users", 1_000),
+                ("112000000130", "load users ", 1_000),
+            ],
+        )
+        assert rows == {
+            "112000000128": "Load Users [00000128]",
+            "112000000130": "load users [00000130]",
+        }
+
+    def test_list_names_are_normalised_and_capped(self, tmp_path: Path) -> None:
+        rows = self._action_rows(tmp_path, [("112000000128", "  Load\u00a0 " + "Z" * 70, 1_000)])
+        assert rows == {"112000000128": ("Load " + "Z" * 70)[:60]}
+
+    def test_unsaved_action_and_blank_names_are_dropped(self, tmp_path: Path) -> None:
+        rows = self._action_rows(
+            tmp_path,
+            [
+                ("-1", "Unsaved", 1_000),
+                ("112000000128", "   ", 1_000),
+                ("112000000130", "Kept", 1_000),
+            ],
+        )
+        assert rows == {"112000000130": "Kept"}
+
     def test_category_gating_creates_only_requested_views(self, tmp_path: Path) -> None:
         db_path = tmp_path / "test.db"
         load_to_duckdb(db_path, {"events": _sample_events_df()})
