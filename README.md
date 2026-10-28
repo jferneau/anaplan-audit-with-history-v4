@@ -101,7 +101,7 @@ target model(s). Here's what each setting does and when to change it.
 | Setting | What it does |
 |---|---|
 | `auditEnabled` | Master switch for the audit-events pipeline. At least one of this or `modelHistory.enabled` must be `true`. |
-| `anaplanTenantName` | Your tenant's display name. Stamped onto every audit row so a multi-tenant report can tell them apart. |
+| `anaplanTenantName` | Your tenant's display name. Stamped onto every audit row so a multi-tenant report can tell them apart. If it's blank, the `TENANT_NAME` column is empty and the run warns. |
 | `authenticationMode` | `OAuth` (recommended), `cert_auth`, or `basic`. |
 | `database` | Path to the local database file the tool builds and reuses. Point at a **fresh** file for v4. |
 | `lastRun` | Fetch watermark (managed for you). Leave `0` on first run. After each successful upload it is set to the newest event fetched minus one hour, so each run re-checks the last hour for late-arriving events; duplicates are dropped automatically. |
@@ -112,8 +112,8 @@ target model(s). Here's what each setting does and when to change it.
 
 | Setting | What it does |
 |---|---|
-| `workspaceModelFilterApproach` | `select` = audit only the models you list; `skip` = audit everything *except* the ones you list. |
-| `workspaceModelCombos` | The list of `{ workspaceId, modelId }` pairs for the mode above. **Names or IDs both work** — names are resolved at runtime, so config survives model rebuilds. |
+| `workspaceModelFilterApproach` | `select` = audit only the models you list; `skip` = audit everything *except* the ones you list. `skip` with an empty list audits every model; `select` with an empty list audits none, and the run warns. In `skip` mode, a workspace whose models can't be listed is logged and left out rather than failing the run. |
+| `workspaceModelCombos` | The list of `{ workspaceId, modelId }` pairs for the mode above. **Names or IDs both work** in either mode — names are resolved at runtime (case-insensitive), so config survives model rebuilds. A `skip` entry that matches no model is logged as `skip_combo_not_found`. |
 
 > Audit **events** are always read tenant-wide, and all workspaces/models are
 > loaded so every event resolves to its model. This scope controls which

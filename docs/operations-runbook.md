@@ -225,6 +225,8 @@ event:
 | `list_sync_added` / `list_sync_already_current` | Safety-net list sync outcome |
 | `pipeline_complete` | Run finished successfully |
 | `model_history_*` (warning) | A single model export/upload issue — other models continue; audit run unaffected |
+| `config_warning` | A valid but probably unintended setting (empty `select` list, blank `anaplanTenantName`). Also printed by `validate-config` |
+| `workspace_models_unavailable` / `skip_combo_not_found` (warning) | `skip` mode: a workspace's models couldn't be listed, or a skip entry matched no model |
 
 ---
 

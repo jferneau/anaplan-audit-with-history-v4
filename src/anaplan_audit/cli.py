@@ -10,7 +10,7 @@ import typer
 from rich.console import Console
 
 import anaplan_audit
-from anaplan_audit.config import Settings, load_settings
+from anaplan_audit.config import Settings, config_warnings, load_settings
 from anaplan_audit.exceptions import AnaplanAuditError
 from anaplan_audit.logging_config import configure_logging
 
@@ -217,6 +217,8 @@ def validate_config(
         console.print(f"  Last run: {settings.lastRun}")
         console.print(f"  Batch size: {settings.auditBatchSize}")
         console.print(f"  Workspace/model combos: {len(settings.workspaceModelCombos)}")
+        for warning in config_warnings(settings):
+            console.print(f"[yellow]Warning: {warning}[/yellow]")
     except AnaplanAuditError as exc:
         console.print(f"[red]Config validation failed: {exc}[/red]")
         raise typer.Exit(code=exc.exit_code) from exc
