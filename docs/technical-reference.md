@@ -392,7 +392,7 @@ Three DuckDB tables back the pipeline (no `FOREIGN KEY`s — see Section
 |---|---|---|
 | `model_registry` | One row per in-scope model, with `last_synced_at`. | `model_id` |
 | `model_history_list` | One row per change record — drives the Anaplan list. | `record_id` |
-| `model_history_normalized` | Full change detail — 21 columns incl. `user`, `description`, `previous_value`, `new_value`, `module_list`, `line_item_property`, `object`, `target_user`, and the derived `change_type` / `object_type`. | `record_id` |
+| `model_history_normalized` | Full change detail — 22 columns incl. `user`, `description`, `previous_value`, `new_value`, `module_list`, `line_item_property`, `object`, `target_user`, the derived `change_type` / `object_type`, and `method` (Anaplan's *Method*, e.g. *AI-Assisted*). | `record_id` |
 
 `record_id` is a deterministic SHA-256 of a change's immutable fields, so
 re-exporting an overlapping window never duplicates a row. Migration

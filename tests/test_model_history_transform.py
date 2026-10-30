@@ -108,16 +108,18 @@ class TestV380ClassificationColumns:
     """change_type / object_type are the last two columns, and every row
     classifies (v3.8 handoff — locked position + zero-regression contract)."""
 
-    def test_classification_columns_are_last_two(self) -> None:
+    def test_classification_columns_keep_position(self) -> None:
+        # Columns added later (e.g. `method`) append after these two.
         from anaplan_audit.model_history.history_transform_service import NORMALIZED_COLUMNS
 
-        assert NORMALIZED_COLUMNS[-2:] == ["change_type", "object_type"]
+        assert NORMALIZED_COLUMNS[19:21] == ["change_type", "object_type"]
+        assert NORMALIZED_COLUMNS[21:] == ["method"]
 
     def test_prior_columns_keep_name_and_position(self) -> None:
         # Snapshot of the v3.7 column order — the two new columns append only.
         from anaplan_audit.model_history.history_transform_service import NORMALIZED_COLUMNS
 
-        assert NORMALIZED_COLUMNS[:-2] == [
+        assert NORMALIZED_COLUMNS[:19] == [
             "record_id",
             "anaplan_record_id",
             "model_id",
@@ -139,9 +141,20 @@ class TestV380ClassificationColumns:
             "captured_at",
         ]
 
-    def test_normalized_output_columns_end_with_classification(self) -> None:
+    def test_example_file_matches_columns(self) -> None:
+        import csv
+
+        from anaplan_audit.model_history.history_transform_service import NORMALIZED_COLUMNS
+
+        example = Path(__file__).resolve().parent.parent / "examples"
+        with (example / "MODEL_HISTORY_NORMALIZED.csv").open(newline="") as f:
+            assert next(csv.reader(f)) == NORMALIZED_COLUMNS
+
+    def test_normalized_output_columns_follow_declared_order(self) -> None:
+        from anaplan_audit.model_history.history_transform_service import NORMALIZED_COLUMNS
+
         _, _, norm = normalize_model_history(_SAMPLE_CSV, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
-        assert list(norm.columns)[-2:] == ["change_type", "object_type"]
+        assert list(norm.columns) == NORMALIZED_COLUMNS
 
     def test_every_row_classifies_never_blank(self) -> None:
         _, _, norm = normalize_model_history(_SAMPLE_CSV, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
@@ -438,3 +451,92 @@ class TestTargetUserColumnRestoration:
                 "SELECT target_user FROM model_history_normalized ORDER BY target_user"
             ).fetchall()
         assert [r[0] for r in rows] == ["charlie@example.com", "dana@example.com"]
+
+
+class TestMethodColumn:
+    """Anaplan added a ``Method`` column to the model history export
+    ("AI-Assisted" for AI-assisted changes). It lands on
+    ``model_history_normalized.method``; blank rows stay blank."""
+
+    # Shape of a real export: tab-delimited, and rows with nothing in the
+    # trailing columns are short.
+    _CSV = (
+        "ID\tDate/Time (UTC)\tUser\tDescription\tSecurity Change\tPrevious Value\t"
+        "New Value\tModule/List\tLine Item/Property\tMethod\n"
+        "2001018\t2026-10-29 19:58:53\tapi@example.com\t\t\t2026-10-28T21:26:06Z\t"
+        "2026-10-27T21:26:06Z\tDelta_Control_Module\tlast_successful_watermark\n"
+        "2001020\t2026-10-30 16:55:17\tapi@example.com\tName Changed\t\tTable Map\t"
+        "UNUSED Table Map\tUNUSED Table Map\t\tAI-Assisted\n"
+    )
+
+    @pytest.fixture()
+    def db_path(self, tmp_path: Path) -> Path:
+        path = tmp_path / "test_method.db"
+        ensure_model_history_tables(path)
+        return path
+
+    def _norm(self, csv_text: str) -> pd.DataFrame:
+        _reg, _lst, norm = normalize_model_history(csv_text, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
+        return norm
+
+    def _stored(self, db_path: Path) -> list[tuple[str, str]]:
+        with closing(duckdb.connect(str(db_path))) as conn:
+            rows = conn.execute(
+                'SELECT anaplan_record_id, "method" FROM model_history_normalized ORDER BY 1'
+            ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
+    def test_method_is_mapped(self) -> None:
+        norm = self._norm(self._CSV)
+        assert norm["method"].tolist() == ["", "AI-Assisted"]
+        assert norm["module_list"].tolist() == ["Delta_Control_Module", "UNUSED Table Map"]
+        assert norm["line_item_property"].tolist() == ["last_successful_watermark", ""]
+
+    def test_method_is_empty_when_not_present(self) -> None:
+        norm = self._norm(_SAMPLE_CSV)
+        assert (norm["method"] == "").all()
+
+    def test_record_ids_unchanged_by_method_column(self) -> None:
+        without = self._CSV.replace("\tMethod", "").replace("\tAI-Assisted", "")
+        assert self._norm(self._CSV)["record_id"].tolist() == (
+            self._norm(without)["record_id"].tolist()
+        )
+
+    def test_method_persists_through_upsert(self, db_path: Path) -> None:
+        reg, lst, norm = normalize_model_history(self._CSV, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
+        upsert_model_history(db_path, reg, lst, norm)
+        assert self._stored(db_path) == [("2001018", ""), ("2001020", "AI-Assisted")]
+
+    def test_existing_database_gains_column_and_backfills(self, tmp_path: Path) -> None:
+        # A database created before `method` existed, already holding the rows.
+        from anaplan_audit.transform import loader
+
+        path = tmp_path / "old.db"
+        old_ddl = loader._MODEL_HISTORY_NORMALIZED_DDL.replace(
+            ',\n    "method"            VARCHAR', ""
+        )
+        assert "method" not in old_ddl
+        with closing(duckdb.connect(str(path))) as conn:
+            conn.execute(old_ddl)
+            conn.register("norm", self._norm(self._CSV))
+            conn.execute(
+                "INSERT INTO model_history_normalized "
+                "(record_id, anaplan_record_id, model_id, date_time_utc, captured_at) "
+                "SELECT record_id, anaplan_record_id, model_id, date_time_utc, captured_at "
+                "FROM norm"
+            )
+
+        ensure_model_history_tables(path)
+        reg, lst, norm = normalize_model_history(self._CSV, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
+        upsert_model_history(path, reg, lst, norm)
+        assert self._stored(path) == [("2001018", ""), ("2001020", "AI-Assisted")]
+
+    def test_export_without_method_keeps_stored_value(self, db_path: Path) -> None:
+        upsert_model_history(
+            db_path, *normalize_model_history(self._CSV, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
+        )
+        without = self._CSV.replace("\tMethod", "").replace("\tAI-Assisted", "")
+        upsert_model_history(
+            db_path, *normalize_model_history(without, MODEL_ID, MODEL_NAME, WS_ID, WS_NAME)
+        )
+        assert self._stored(db_path) == [("2001018", ""), ("2001020", "AI-Assisted")]

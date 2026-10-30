@@ -84,6 +84,10 @@ NORMALIZED_COLUMNS: list[str] = [
     # anaplan_audit.model_history.classification.
     "change_type",
     "object_type",
+    # Anaplan's "Method" column — "AI-Assisted" when the change was made with
+    # AI assistance, blank otherwise. Appended after the derived columns so
+    # every earlier column keeps its position for column-number mappings.
+    "method",
 ]
 
 # The two derived columns above are not sourced from the export CSV — they are
@@ -113,6 +117,7 @@ _COLUMN_MAP: dict[str, list[str]] = {
     # and dropped; now stored on model_history_normalized so the
     # reporting model can show attribution for security changes.
     "target_user": ["target user", "targetuser"],
+    "method": ["method"],
 }
 
 
@@ -378,13 +383,15 @@ def normalize_model_history(
         path_literal = str(tmp_path).replace("'", "''")
         delim_literal = "\\t" if delimiter == "\t" else delimiter
 
-        # Inner: import + normalize the 19 base columns. Outer: append the two
-        # derived classification columns (change_type BEFORE object_type — the
-        # locked v4 column order) via the registered UDFs on `description`.
+        # Inner: import + normalize the export columns. Outer: add the two
+        # derived classification columns via the registered UDFs on
+        # `description`, emitting everything in NORMALIZED_COLUMNS order.
+        outer_cols = ", ".join(
+            f"classify_{c}(description) AS {c}" if c in _CLASSIFICATION_COLUMNS else f'"{c}"'
+            for c in NORMALIZED_COLUMNS
+        )
         sql = (
-            f"SELECT *, "
-            f"classify_change_type(description) AS change_type, "
-            f"classify_object_type(description) AS object_type "
+            f"SELECT {outer_cols} "
             f"FROM ("
             f"  SELECT {', '.join(select_parts)} FROM ("
             f"    SELECT *, (row_number() OVER ()) - 1 AS __row_idx"
