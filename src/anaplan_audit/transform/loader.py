@@ -727,7 +727,8 @@ CREATE TABLE IF NOT EXISTS model_history_normalized (
     target_user         VARCHAR,
     captured_at         VARCHAR NOT NULL,
     change_type         VARCHAR,
-    object_type         VARCHAR
+    object_type         VARCHAR,
+    "method"            VARCHAR
 )
 """
 
@@ -745,6 +746,8 @@ _NORMALIZED_MIGRATION_COLUMNS: list[tuple[str, str]] = [
     # v3.8.0 — derived controlled-vocabulary classification columns.
     ("change_type", "VARCHAR"),
     ("object_type", "VARCHAR"),
+    # 4.0.0 — Anaplan's "Method" column (e.g. "AI-Assisted").
+    ("method", "VARCHAR"),
 ]
 
 # Failsafe report (v3.8): descriptions that no change-type rule matched, so
@@ -815,9 +818,9 @@ def upsert_model_history(
     ``ON CONFLICT DO NOTHING`` to avoid duplicating records from
     overlapping runs.  ``model_history_normalized`` also dedups on
     ``record_id`` but refreshes the two derived classification columns
-    (``change_type`` / ``object_type``) on conflict, so re-runs backfill
-    and re-classification propagate to existing rows while the immutable
-    export columns are left untouched.
+    (``change_type`` / ``object_type``) and ``method`` on conflict, so re-runs
+    backfill and re-classification propagate to existing rows while the
+    immutable export columns are left untouched.
 
     The two bulk tables merge set-based (register + ``INSERT … SELECT``)
     rather than row-by-row — large tenants produce hundreds of thousands
@@ -892,6 +895,7 @@ def upsert_model_history(
                     "captured_at",
                     "change_type",
                     "object_type",
+                    "method",
                 ]
                 quoted_norm_cols = ", ".join(f'"{c}"' for c in norm_cols)
                 if len(model_history_normalized_df):
@@ -906,13 +910,18 @@ def upsert_model_history(
                     # record first landed before classification), so a re-run could
                     # never backfill or re-classify. DO UPDATE on just these two
                     # keeps dedup (still one row per record_id) while letting
-                    # reclassification propagate.
+                    # reclassification propagate. `method` backfills rows stored
+                    # before the column existed, but only with a non-blank value:
+                    # Anaplan's export columns vary with content, so an export
+                    # without a Method column must not erase a stored one.
                     conn.execute(
                         f"INSERT INTO model_history_normalized ({quoted_norm_cols}) "
                         f"SELECT {quoted_norm_cols} FROM _mhn_batch "
                         f"ON CONFLICT (record_id) DO UPDATE SET "
                         f"change_type = excluded.change_type, "
-                        f"object_type = excluded.object_type"
+                        f"object_type = excluded.object_type, "
+                        f'"method" = COALESCE(NULLIF(excluded."method", \'\'), '
+                        f'model_history_normalized."method", excluded."method")'
                     )
                     conn.unregister("_mhn_batch")
                 conn.execute("COMMIT")

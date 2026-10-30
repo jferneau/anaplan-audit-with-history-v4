@@ -235,7 +235,15 @@ Dimensioned by `Model History List`. Map from
 | target_user | `target_user` (who a role change was done *to*) |
 | **change_type** | `change_type` (derived, e.g. *Formula changed*) |
 | **object_type** | `object_type` (derived, e.g. *Module*, *List*) |
+| method | `method` (*AI-Assisted* for changes made with Anaplan's AI assistance; blank otherwise) |
 | captured_at | `captured_at` |
+
+From 4.0.0 the file has a `method` column, taken from the *Method* column
+Anaplan added to the model history export. It is the last column, so
+existing column-number mappings are unaffected; add a `method` line item and
+map it to start reporting AI-assisted changes. Changes stored before 4.0.0
+pick up their method on the next run, as long as Anaplan's export still
+includes them.
 
 `change_type` and `object_type` are controlled-vocabulary columns the
 tool derives from the free-text description — make them List-formatted to
