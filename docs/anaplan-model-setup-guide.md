@@ -239,7 +239,19 @@ Dimensioned by `Model History List`. Map from
 
 `change_type` and `object_type` are controlled-vocabulary columns the
 tool derives from the free-text description — make them List-formatted to
-pivot and filter cleanly.
+pivot and filter cleanly. To do that, create an `MH_CHANGE_TYPES` and an
+`MH_OBJECT_TYPES` list and load them once from
+[`examples/MH_CHANGE_TYPES.csv`](../examples/MH_CHANGE_TYPES.csv) and
+[`examples/MH_OBJECT_TYPES.csv`](../examples/MH_OBJECT_TYPES.csv) (one
+column; map it to Name). These are the complete sets of values the tool can
+emit, so every detail row matches a list item.
+
+The rules that map a description to these values live in the tool, in
+[`mh_classification_rules.csv`](../src/anaplan_audit/model_history/data/mh_classification_rules.csv)
+(read top-down by `priority`; first match wins, anything unmatched becomes
+`Other`). They are not loaded into Anaplan. If a release adds a value to
+either vocabulary, add the same item to the matching list before that
+release's first run.
 
 ## 3.3 File sources, imports, process
 
