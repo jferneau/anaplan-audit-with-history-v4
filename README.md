@@ -215,8 +215,9 @@ A few things that make the imports smooth:
   **Parent ← `Parent Code`** on the `ACTIVITY_CODES` import so every code lands
   under its category. See [How the EVENT_ID list stays orphan-free](#how-the-event_id-list-stays-orphan-free).
 - **For Model History,** if `change_type` / `object_type` are list-formatted,
-  pre-load the `MH_CHANGE_TYPES` / `MH_OBJECT_TYPES` lists so every value
-  matches.
+  pre-load the `MH_CHANGE_TYPES` / `MH_OBJECT_TYPES` lists from
+  `examples/MH_CHANGE_TYPES.csv` / `examples/MH_OBJECT_TYPES.csv` so every
+  value matches.
 
 <details>
 <summary><b>CSV file sources &amp; columns (reference)</b></summary>

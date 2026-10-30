@@ -7,6 +7,8 @@ the pure-Python :mod:`anaplan_audit.model_history.classification`.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from anaplan_audit.model_history import classification as c
@@ -61,6 +63,21 @@ def test_every_bundled_rule_cites_known_vocabulary() -> None:
     for rule in c.load_rules():
         assert rule.object_type in objs, rule
         assert rule.change_type in chgs, rule
+
+
+@pytest.mark.parametrize(
+    ("example", "bundled"),
+    [
+        ("MH_OBJECT_TYPES.csv", "mh_object_types.csv"),
+        ("MH_CHANGE_TYPES.csv", "mh_change_types.csv"),
+    ],
+)
+def test_example_vocabulary_matches_bundled(example: str, bundled: str) -> None:
+    # examples/ ships the vocabularies so model builders can pre-load the
+    # MH_OBJECT_TYPES / MH_CHANGE_TYPES lists; guard against drift.
+    examples = Path(__file__).resolve().parent.parent / "examples"
+    shipped = (examples / example).read_text().splitlines()
+    assert shipped[1:] and set(shipped[1:]) == c._read_vocabulary(bundled)
 
 
 def test_unknown_object_type_skipped_with_warning() -> None:
